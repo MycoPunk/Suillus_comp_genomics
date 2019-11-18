@@ -824,7 +824,6 @@ names(Gyrli1_in)<-lapply(names(Gyrli1_in), gsub, pattern="\\|", replacement='_')
 names(Cananz1_in)<-lapply(names(Cananz1_in), gsub, pattern="\\|", replacement='_')
 names(Hyssto1_in)<-lapply(names(Hyssto1_in), gsub, pattern="\\|", replacement='_')
 
-
 #get fastas of only positive hits for EffectorP analysis 
 Suivar1_SSP_fastas<- Suivar1_in[c(which(names(Suivar1_in) %in% Suivar1.3_subset$V1))]
 Suitom1_SSP_fastas<- Suitom1_in[c(which(names(Suitom1_in) %in% Suitom1.3_subset$V1))]
@@ -932,10 +931,6 @@ write.fasta(Cananz1_SSP_fastas, names = names(Cananz1_SSP_fastas), open = "w", n
 write.fasta(Hyssto1_SSP_fastas, names = names(Hyssto1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Hyssto1_SSPs_for_EffectorP.fasta")
 
 
-
-#:::you are here
-
-
 ########
 #now run EffectorP version2 on the web interface
 #######
@@ -1034,11 +1029,6 @@ Hyssto1_effectors<- seqinr::read.fasta(file = "Hyssto1_EffectorCandidates.fasta"
 
 
 
-#:::you are here 
-
-
-
-
 #get totals
 #total number of putative effectors
 Suivar1<- length(Suivar1_effectors)
@@ -1060,6 +1050,7 @@ Suibr2<- length(Suibr2_effectors)
 Suibov1<- length(Suibov1_effectors)
 Suiamp1<- length(Suiamp1_effectors)
 Suiame1<- length(Suiame1_effectors)
+Suifus1<- length(Suifus1_effectors)
 #non-Suillus set
 Rhivul1<- length(Rhivul1_effectors)
 Rhitru1<- length(Rhitru1_effectors)
@@ -1070,9 +1061,25 @@ Paxin1<- length(Paxin1_effectors)
 Pilcr1<- length(Pilcr1_effectors)
 Pismi1<- length(Pismi1_effectors)
 Sclci1<- length(Sclci1_effectors)
+Theter1<- length(Theter1_effectors)
+Thega1<- length(Thega1_effectors)
+Rhivi1<- length(Rhivi1_effectors)
+Rhives1<- length(Rhives1_effectors)
+Rhisa1<- length(Rhisa1_effectors)
+Ruscom1<- length(Ruscom1_effectors)
+Rusbre1<- length(Rusbre1_effectors)
+Pisti1<- length(Pisti1_effectors)
+Lacam2<- length(Lacam2_effectors)
+Hydru2<- length(Hydru2_effectors)
+Gaumor1<- length(Gaumor1_effectors)
+Gyrli1<- length(Gyrli1_effectors)
+Cananz1<- length(Cananz1_effectors)
+Hyssto1<- length(Hyssto1_effectors)
 
 
 
+
+#touare here 
 total_effectors<- data.frame(cbind(Suivar1, 
                                    Suitom1, 
                                    Suisub1, 
@@ -1083,15 +1090,15 @@ total_effectors<- data.frame(cbind(Suivar1,
                                    Suiocc1, 
                                    Suilu4, 
                                    Suilak1, 
-                                   Suihi1,
-                                   Suigr1, 
+                                   Suihi1, 
                                    Suidec1, 
                                    Suicot1, 
                                    Suicli1, 
                                    Suibr2, 
                                    Suibov1, 
                                    Suiamp1, 
-                                   Suiame1, 
+                                   Suiame1,
+                                   Suifus1,
                                    Rhivul1,
                                    Rhitru1,
                                    Amamu1,
@@ -1100,7 +1107,21 @@ total_effectors<- data.frame(cbind(Suivar1,
                                    Paxin1,
                                    Pilcr1,
                                    Pismi1,
-                                   Sclci1),
+                                   Sclci1, 
+                                   Theter1,
+                                   Thega1,
+                                   Rhivi1,
+                                   Rhives1,
+                                   Rhisa1,
+                                   Ruscom1,
+                                   Rusbre1,
+                                   Pisti1,
+                                   Lacam2,
+                                   Hydru2,
+                                   Gaumor1,
+                                   Gyrli1,
+                                   Cananz1,
+                                   Hyssto1),
                              row.names = "n_putative_effectors_from_EffectorP")
 
 
@@ -1125,6 +1146,7 @@ Suibr2<- nrow(Suibr2_TMHMM_no_TMD_300)
 Suibov1<- nrow(Suibov1_TMHMM_no_TMD_300)
 Suiamp1<- nrow(Suiamp1_TMHMM_no_TMD_300)
 Suiame1<- nrow(Suiame1_TMHMM_no_TMD_300)
+Suifus1<- nrow(Suifus1_TMHMM_no_TMD_300)
 #non-Suillus set
 Rhivul1<- nrow(Rhivul1_TMHMM_no_TMD_300)
 Rhitru1<- nrow(Rhitru1_TMHMM_no_TMD_300)
@@ -1135,7 +1157,20 @@ Paxin1<- nrow(Paxin1_TMHMM_no_TMD_300)
 Pilcr1<- nrow(Pilcr1_TMHMM_no_TMD_300)
 Pismi1<- nrow(Pismi1_TMHMM_no_TMD_300)
 Sclci1<- nrow(Sclci1_TMHMM_no_TMD_300)
-
+Theter1<- nrow(Theter1_TMHMM_no_TMD_300)
+Thega1<- nrow(Thega1_TMHMM_no_TMD_300)
+Rhivi1<- nrow(Rhivi1_TMHMM_no_TMD_300)
+Rhives1<- nrow(Rhives1_TMHMM_no_TMD_300)
+Rhisa1<- nrow(Rhisa1_TMHMM_no_TMD_300)
+Ruscom1<- nrow(Ruscom1_TMHMM_no_TMD_300)
+Rusbre1<- nrow(Rusbre1_TMHMM_no_TMD_300)
+Pisti1<- nrow(Pisti1_TMHMM_no_TMD_300)
+Lacam2<- nrow(Lacam2_TMHMM_no_TMD_300)
+Hydru2<- nrow(Hydru2_TMHMM_no_TMD_300)
+Gaumor1<- nrow(Gaumor1_TMHMM_no_TMD_300)
+Gyrli1<- nrow(Gyrli1_TMHMM_no_TMD_300)
+Cananz1<- nrow(Cananz1_TMHMM_no_TMD_300)
+Hyssto1<- nrow(Hyssto1_TMHMM_no_TMD_300)
 
 total_SSPs<- data.frame(cbind(Suivar1, 
                               Suitom1, 
@@ -1147,15 +1182,15 @@ total_SSPs<- data.frame(cbind(Suivar1,
                               Suiocc1, 
                               Suilu4, 
                               Suilak1, 
-                              Suihi1,
-                              Suigr1,
+                              Suihi1, 
                               Suidec1, 
                               Suicot1, 
                               Suicli1, 
                               Suibr2, 
                               Suibov1, 
                               Suiamp1, 
-                              Suiame1, 
+                              Suiame1,
+                              Suifus1,
                               Rhivul1,
                               Rhitru1,
                               Amamu1,
@@ -1164,7 +1199,21 @@ total_SSPs<- data.frame(cbind(Suivar1,
                               Paxin1,
                               Pilcr1,
                               Pismi1,
-                              Sclci1),
+                              Sclci1, 
+                              Theter1,
+                              Thega1,
+                              Rhivi1,
+                              Rhives1,
+                              Rhisa1,
+                              Ruscom1,
+                              Rusbre1,
+                              Pisti1,
+                              Lacam2,
+                              Hydru2,
+                              Gaumor1,
+                              Gyrli1,
+                              Cananz1,
+                              Hyssto1),
                         row.names = "#SSPs_signalP,TMHMM,lt_300aa")
 
 
@@ -1188,6 +1237,7 @@ Suibr2<- length(Suibr2_in)
 Suibov1<- length(Suibov1_in)
 Suiamp1<- length(Suiamp1_in)
 Suiame1<- length(Suiame1_in)
+Suifus1<- length(Suifus1_in)
 #non-Suillus set
 Rhivul1<- length(Rhivul1_in)
 Rhitru1<- length(Rhitru1_in)
@@ -1198,7 +1248,20 @@ Paxin1<- length(Paxin1_in)
 Pilcr1<- length(Pilcr1_in)
 Pismi1<- length(Pismi1_in)
 Sclci1<- length(Sclci1_in)
-
+Theter1<- length(Theter1_in)
+Thega1<- length(Thega1_in)
+Rhivi1<- length(Rhivi1_in)
+Rhives1<- length(Rhives1_in)
+Rhisa1<- length(Rhisa1_in)
+Ruscom1<- length(Ruscom1_in)
+Rusbre1<- length(Rusbre1_in)
+Pisti1<- length(Pisti1_in)
+Lacam2<- length(Lacam2_in)
+Hydru2<- length(Hydru2_in)
+Gaumor1<- length(Gaumor1_in)
+Gyrli1<- length(Gyrli1_in)
+Cananz1<- length(Cananz1_in)
+Hyssto1<- length(Hyssto1_in)
 
 total_proteins<-data.frame(cbind(Suivar1, 
                                  Suitom1, 
@@ -1210,8 +1273,7 @@ total_proteins<-data.frame(cbind(Suivar1,
                                  Suiocc1, 
                                  Suilu4, 
                                  Suilak1, 
-                                 Suihi1,
-                                 Suigr1, 
+                                 Suihi1, 
                                  Suidec1, 
                                  Suicot1, 
                                  Suicli1, 
@@ -1219,6 +1281,7 @@ total_proteins<-data.frame(cbind(Suivar1,
                                  Suibov1, 
                                  Suiamp1, 
                                  Suiame1,
+                                 Suifus1,
                                  Rhivul1,
                                  Rhitru1,
                                  Amamu1,
@@ -1227,7 +1290,21 @@ total_proteins<-data.frame(cbind(Suivar1,
                                  Paxin1,
                                  Pilcr1,
                                  Pismi1,
-                                 Sclci1),
+                                 Sclci1, 
+                                 Theter1,
+                                 Thega1,
+                                 Rhivi1,
+                                 Rhives1,
+                                 Rhisa1,
+                                 Ruscom1,
+                                 Rusbre1,
+                                 Pisti1,
+                                 Lacam2,
+                                 Hydru2,
+                                 Gaumor1,
+                                 Gyrli1,
+                                 Cananz1,
+                                 Hyssto1),
                            row.names = "n_putative_proteins_from_gene_cat")  
 
 #bind results and transform
@@ -1247,14 +1324,11 @@ percent_effectors_out_of_SSPs<-signif(percent_effectors_out_of_SSPs, digits = 4)
 #slap it together
 results_with_percentages<- cbind(results.1, percent_SSPs_out_of_total_genes, percent_effectors_out_of_total_genes, percent_effectors_out_of_SSPs)
 
-
 #write it up
 write.csv(results, quote = FALSE, file = "SSP_and_Effector_totals.csv")
 
-
 #read in genome size file and run stats for table
 genome_size_df<- read.csv("genome_size_data.csv")
-
 
 
 #split the two data categories for genome size and get stats for each
@@ -1271,11 +1345,16 @@ Other_genome_size_SD<- sd(Other_genome_size$genome_size)
 Other_genome_size_SE<- std(Other_genome_size$genome_size)
 
 
+
+
+#you are here:::
+
 #test normality 
 shapiro.test(Suillus_genome_size$genome_size)
 #not normal
 shapiro.test(Other_genome_size$genome_size)
 #not normal
+
 
 #test for equal variance 
 var.test(Suillus_genome_size$genome_size, Other_genome_size$genome_size)
