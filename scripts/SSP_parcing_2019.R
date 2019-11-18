@@ -2,6 +2,7 @@
 library("seqinr")
 library("data.table")
 library("stringr")
+library("dplyr")
 
 #set options
 options(stringsAsFactors = FALSE)
@@ -218,7 +219,7 @@ Suibr2_TMHMM_no_TMD<- data.frame(Suibr2_TMHMM_sm.by.col[ grep("Number of predict
 Suibov1_TMHMM_no_TMD<- data.frame(Suibov1_TMHMM_sm.by.col[ grep("Number of predicted TMHs:  0", Suibov1_TMHMM_sm.by.col$X2),])
 Suiamp1_TMHMM_no_TMD<- data.frame(Suiamp1_TMHMM_sm.by.col[ grep("Number of predicted TMHs:  0", Suiamp1_TMHMM_sm.by.col$X2),])
 Suiame1_TMHMM_no_TMD<- data.frame(Suiame1_TMHMM_sm.by.col[ grep("Number of predicted TMHs:  0", Suiame1_TMHMM_sm.by.col$X2),])
-Suifus1_TMHMM_no_TMD<- data.frame(Suiame1_TMHMM_sm.by.col[ grep("Number of predicted TMHs:  0", Suiame1_TMHMM_sm.by.col$X2),])
+Suifus1_TMHMM_no_TMD<- data.frame(Suifus1_TMHMM_sm.by.col[ grep("Number of predicted TMHs:  0", Suifus1_TMHMM_sm.by.col$X2),])
 
 #non-Suillus set
 Rhivul1_TMHMM_no_TMD<- data.frame(Rhivul1_TMHMM_sm.by.col[ grep("Number of predicted TMHs:  0", Rhivul1_TMHMM_sm.by.col$X2),])
@@ -371,7 +372,8 @@ Suibr2_TMHMM_no_TMD_300<- Suibr2_df.num[Suibr2_df.num$V1 < 300, ]
 Suibov1_TMHMM_no_TMD_300<- Suibov1_df.num[Suibov1_df.num$V1 < 300, ]
 Suiamp1_TMHMM_no_TMD_300<- Suiamp1_df.num[Suiamp1_df.num$V1 < 300, ]
 Suiame1_TMHMM_no_TMD_300<- Suiame1_df.num[Suiame1_df.num$V1 < 300, ]
-Suifus1_TMHMM_no_TMD_300<- Suiame1_df.num[Suifus1_df.num$V1 < 300, ]
+Suifus1_TMHMM_no_TMD_300<- Suifus1_df.num[Suifus1_df.num$V1 < 300, ]
+
 #non-Suillus set
 Rhivul1_TMHMM_no_TMD_300<- Rhivul1_df.num[Rhivul1_df.num$V1 < 300, ]
 Rhitru1_TMHMM_no_TMD_300<- Rhitru1_df.num[Rhitru1_df.num$V1 < 300, ]
@@ -420,6 +422,7 @@ Suibov1<- nrow(Suibov1_TMHMM_no_TMD_300)
 Suiamp1<- nrow(Suiamp1_TMHMM_no_TMD_300)
 Suiame1<- nrow(Suiame1_TMHMM_no_TMD_300)
 Suifus1<- nrow(Suifus1_TMHMM_no_TMD_300)
+
 #non-Suillus set
 Rhivul1<- nrow(Rhivul1_TMHMM_no_TMD_300)
 Rhitru1<- nrow(Rhitru1_TMHMM_no_TMD_300)
@@ -444,10 +447,6 @@ Gaumor1<- nrow(Gaumor1_TMHMM_no_TMD_300)
 Gyrli1<- nrow(Gyrli1_TMHMM_no_TMD_300)
 Cananz1<- nrow(Cananz1_TMHMM_no_TMD_300)
 Hyssto1<- nrow(Hyssto1_TMHMM_no_TMD_300)
-
-
-
-
 
 #add the ttotals 
 totals.2<- data.frame(cbind(Suivar1, 
@@ -478,6 +477,20 @@ totals.2<- data.frame(cbind(Suivar1,
                             Pilcr1,
                             Pismi1,
                             Sclci1, 
+                            Theter1,
+                            Thega1,
+                            Rhivi1,
+                            Rhives1,
+                            Rhisa1,
+                            Ruscom1,
+                            Rusbre1,
+                            Pisti1,
+                            Lacam2,
+                            Hydru2,
+                            Gaumor1,
+                            Gyrli1,
+                            Cananz1,
+                            Hyssto1
                             ),
                       row.names = "#SSPs_signalP,TMHMM,lt_300aa")
 totals.2[1,]
@@ -488,7 +501,6 @@ write.csv(totals.2, quote = FALSE, file = "SSP_totals.csv")
 
 
 #now parse out the SSP's from the original aa sequences. 
-
 #read in the whole proteome fastas
 Suivar1_in<- seqinr::read.fasta(file = "Suivar1_wo_stops.fasta", 
                                 seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
@@ -528,6 +540,8 @@ Suiamp1_in<- seqinr::read.fasta(file = "Suiamp1_wo_stops.fasta",
                                 seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Suiame1_in<- seqinr::read.fasta(file = "Suiame1_wo_stops.fasta", 
                                 seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Suifus1_in<- seqinr::read.fasta(file = "Suifus1_wo_stops.fasta", 
+                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 #non-Suillus set
 Rhivul1_in<- seqinr::read.fasta(file = "Rhivul1_wo_stops.fasta", 
                                 seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
@@ -547,11 +561,37 @@ Pismi1_in<- seqinr::read.fasta(file = "Pismi1_wo_stops.fasta",
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Sclci1_in<- seqinr::read.fasta(file = "Sclci1_wo_stops.fasta", 
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Theter1_in<- seqinr::read.fasta(file = "Theter1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Thega1_in<- seqinr::read.fasta(file = "Thega1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Rhivi1_in<- seqinr::read.fasta(file = "Rhivi1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Rhives1_in<- seqinr::read.fasta(file = "Rhives1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Rhisa1_in<- seqinr::read.fasta(file = "Rhisa1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Ruscom1_in<- seqinr::read.fasta(file = "Ruscom1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Rusbre1_in<- seqinr::read.fasta(file = "Rusbre1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Pisti1_in<- seqinr::read.fasta(file = "Pisti1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Lacam2_in<- seqinr::read.fasta(file = "Lacam2_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Hydru2_in<- seqinr::read.fasta(file = "Hydru2_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Gaumor1_in<- seqinr::read.fasta(file = "Gaumor1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Gyrli1_in<- seqinr::read.fasta(file = "Gyrli1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Cananz1_in<- seqinr::read.fasta(file = "Cananz1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Hyssto1_in<- seqinr::read.fasta(file = "Hyssto1_wo_stops.fasta", 
+                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 
 
-
-
-#function to isolate the isolate_ID
+#function to isolate the gene ID
 isolate_ID <- function(in_df) { 
   a<- data.frame(strsplit(as.character(in_df[,1]), split=" "))
   b<- data.frame(a[1,])
@@ -561,7 +601,7 @@ isolate_ID <- function(in_df) {
 
 
 
-#run function to isolate IDs  
+#run function to isolate gene IDs  
 Suivar1_subset <- data.frame(substr(Suivar1_TMHMM_no_TMD_300$X1, 3,nchar(Suivar1_TMHMM_no_TMD_300$X1)))
 Suivar1.2_subset<- isolate_ID(Suivar1_subset) 
 Suivar1.3_subset<- data.frame(lapply(Suivar1.2_subset, gsub, pattern=' ', replacement=''))
@@ -638,6 +678,11 @@ Suiame1_subset <- data.frame(substr(Suiame1_TMHMM_no_TMD_300$X1, 3,nchar(Suiame1
 Suiame1.2_subset<- isolate_ID(Suiame1_subset) 
 Suiame1.3_subset<- data.frame(lapply(Suiame1.2_subset, gsub, pattern=' ', replacement=''))
 
+Suifus1_subset <- data.frame(substr(Suifus1_TMHMM_no_TMD_300$X1, 3,nchar(Suifus1_TMHMM_no_TMD_300$X1)))
+Suifus1.2_subset<- isolate_ID(Suifus1_subset) 
+Suifus1.3_subset<- data.frame(lapply(Suifus1.2_subset, gsub, pattern=' ', replacement=''))
+
+
 #non-Suillus set
 Rhivul1_subset <- data.frame(substr(Rhivul1_TMHMM_no_TMD_300$X1, 3,nchar(Rhivul1_TMHMM_no_TMD_300$X1)))
 Rhivul1.2_subset<- isolate_ID(Rhivul1_subset) 
@@ -675,6 +720,110 @@ Sclci1_subset <- data.frame(substr(Sclci1_TMHMM_no_TMD_300$X1, 3,nchar(Sclci1_TM
 Sclci1.2_subset<- isolate_ID(Sclci1_subset) 
 Sclci1.3_subset<- data.frame(lapply(Sclci1.2_subset, gsub, pattern=' ', replacement=''))
 
+Theter1_subset <- data.frame(substr(Theter1_TMHMM_no_TMD_300$X1, 3,nchar(Theter1_TMHMM_no_TMD_300$X1)))
+Theter1.2_subset<- isolate_ID(Theter1_subset) 
+Theter1.3_subset<- data.frame(lapply(Theter1.2_subset, gsub, pattern=' ', replacement=''))
+
+Thega1_subset <- data.frame(substr(Thega1_TMHMM_no_TMD_300$X1, 3,nchar(Thega1_TMHMM_no_TMD_300$X1)))
+Thega1.2_subset<- isolate_ID(Thega1_subset) 
+Thega1.3_subset<- data.frame(lapply(Thega1.2_subset, gsub, pattern=' ', replacement=''))
+
+Rhivi1_subset <- data.frame(substr(Rhivi1_TMHMM_no_TMD_300$X1, 3,nchar(Rhivi1_TMHMM_no_TMD_300$X1)))
+Rhivi1.2_subset<- isolate_ID(Rhivi1_subset) 
+Rhivi1.3_subset<- data.frame(lapply(Rhivi1.2_subset, gsub, pattern=' ', replacement=''))
+
+Rhives1_subset <- data.frame(substr(Rhives1_TMHMM_no_TMD_300$X1, 3,nchar(Rhives1_TMHMM_no_TMD_300$X1)))
+Rhives1.2_subset<- isolate_ID(Rhives1_subset) 
+Rhives1.3_subset<- data.frame(lapply(Rhives1.2_subset, gsub, pattern=' ', replacement=''))
+
+Rhisa1_subset <- data.frame(substr(Rhisa1_TMHMM_no_TMD_300$X1, 3,nchar(Rhisa1_TMHMM_no_TMD_300$X1)))
+Rhisa1.2_subset<- isolate_ID(Rhisa1_subset) 
+Rhisa1.3_subset<- data.frame(lapply(Rhisa1.2_subset, gsub, pattern=' ', replacement=''))
+
+Ruscom1_subset <- data.frame(substr(Ruscom1_TMHMM_no_TMD_300$X1, 3,nchar(Ruscom1_TMHMM_no_TMD_300$X1)))
+Ruscom1.2_subset<- isolate_ID(Ruscom1_subset) 
+Ruscom1.3_subset<- data.frame(lapply(Ruscom1.2_subset, gsub, pattern=' ', replacement=''))
+
+Rusbre1_subset <- data.frame(substr(Rusbre1_TMHMM_no_TMD_300$X1, 3,nchar(Rusbre1_TMHMM_no_TMD_300$X1)))
+Rusbre1.2_subset<- isolate_ID(Rusbre1_subset) 
+Rusbre1.3_subset<- data.frame(lapply(Rusbre1.2_subset, gsub, pattern=' ', replacement=''))
+
+Pisti1_subset <- data.frame(substr(Pisti1_TMHMM_no_TMD_300$X1, 3,nchar(Pisti1_TMHMM_no_TMD_300$X1)))
+Pisti1.2_subset<- isolate_ID(Pisti1_subset) 
+Pisti1.3_subset<- data.frame(lapply(Pisti1.2_subset, gsub, pattern=' ', replacement=''))
+
+Lacam2_subset <- data.frame(substr(Lacam2_TMHMM_no_TMD_300$X1, 3,nchar(Lacam2_TMHMM_no_TMD_300$X1)))
+Lacam2.2_subset<- isolate_ID(Lacam2_subset) 
+Lacam2.3_subset<- data.frame(lapply(Lacam2.2_subset, gsub, pattern=' ', replacement=''))
+
+Hydru2_subset <- data.frame(substr(Hydru2_TMHMM_no_TMD_300$X1, 3,nchar(Hydru2_TMHMM_no_TMD_300$X1)))
+Hydru2.2_subset<- isolate_ID(Hydru2_subset) 
+Hydru2.3_subset<- data.frame(lapply(Hydru2.2_subset, gsub, pattern=' ', replacement=''))
+
+Gaumor1_subset <- data.frame(substr(Gaumor1_TMHMM_no_TMD_300$X1, 3,nchar(Gaumor1_TMHMM_no_TMD_300$X1)))
+Gaumor1.2_subset<- isolate_ID(Gaumor1_subset) 
+Gaumor1.3_subset<- data.frame(lapply(Gaumor1.2_subset, gsub, pattern=' ', replacement=''))
+
+Gyrli1_subset <- data.frame(substr(Gyrli1_TMHMM_no_TMD_300$X1, 3,nchar(Gyrli1_TMHMM_no_TMD_300$X1)))
+Gyrli1.2_subset<- isolate_ID(Gyrli1_subset) 
+Gyrli1.3_subset<- data.frame(lapply(Gyrli1.2_subset, gsub, pattern=' ', replacement=''))
+
+Cananz1_subset <- data.frame(substr(Cananz1_TMHMM_no_TMD_300$X1, 3,nchar(Cananz1_TMHMM_no_TMD_300$X1)))
+Cananz1.2_subset<- isolate_ID(Cananz1_subset) 
+Cananz1.3_subset<- data.frame(lapply(Cananz1.2_subset, gsub, pattern=' ', replacement=''))
+
+Hyssto1_subset <- data.frame(substr(Hyssto1_TMHMM_no_TMD_300$X1, 3,nchar(Hyssto1_TMHMM_no_TMD_300$X1)))
+Hyssto1.2_subset<- isolate_ID(Hyssto1_subset) 
+Hyssto1.3_subset<- data.frame(lapply(Hyssto1.2_subset, gsub, pattern=' ', replacement=''))
+
+
+#YOU ARE HERE:
+#change all "|" to "_" in the input files
+names(Suivar1_in)<-lapply(names(Suivar1_in), gsub, pattern="\\|", replacement='_')
+names(Suitom1_in)<-lapply(names(Suitom1_in), gsub, pattern="\\|", replacement='_')
+names(Suisub1_in)<-lapply(names(Suisub1_in), gsub, pattern="\\|", replacement='_')
+names(Suisu1_in)<-lapply(names(Suisu1_in), gsub, pattern="\\|", replacement='_')
+names(Suipla1_in)<-lapply(names(Suipla1_in), gsub, pattern="\\|", replacement='_')
+names(Suipic1_in)<-lapply(names(Suipic1_in), gsub, pattern="\\|", replacement='_')
+names(Suipal1_in)<-lapply(names(Suipal1_in), gsub, pattern="\\|", replacement='_')
+names(Suiocc1_in)<-lapply(names(Suiocc1_in), gsub, pattern="\\|", replacement='_')
+names(Suilu4_in)<-lapply(names(Suilu4_in), gsub, pattern="\\|", replacement='_')
+names(Suilak1_in)<-lapply(names(Suilak1_in), gsub, pattern="\\|", replacement='_')
+names(Suihi1_in)<-lapply(names(Suihi1_in), gsub, pattern="\\|", replacement='_')
+names(Suigr1_in)<-lapply(names(Suigr1_in), gsub, pattern="\\|", replacement='_')
+names(Suidec1_in)<-lapply(names(Suidec1_in), gsub, pattern="\\|", replacement='_')
+names(Suicot1_in)<-lapply(names(Suicot1_in), gsub, pattern="\\|", replacement='_')
+names(Suicli1_in)<-lapply(names(Suicli1_in), gsub, pattern="\\|", replacement='_')
+names(Suibr2_in)<-lapply(names(Suibr2_in), gsub, pattern="\\|", replacement='_')
+names(Suibov1_in)<-lapply(names(Suibov1_in), gsub, pattern="\\|", replacement='_')
+names(Suiamp1_in)<-lapply(names(Suiamp1_in), gsub, pattern="\\|", replacement='_')
+names(Suiame1_in)<-lapply(names(Suiame1_in), gsub, pattern="\\|", replacement='_')
+names(Suifus1_in)<-lapply(names(Suifus1_in), gsub, pattern="\\|", replacement='_')
+#non-suillus set
+names(Rhivul1_in)<-lapply(names(Rhivul1_in), gsub, pattern="\\|", replacement='_')
+names(Rhitru1_in)<-lapply(names(Rhitru1_in), gsub, pattern="\\|", replacement='_')
+names(Amamu1_in)<-lapply(names(Amamu1_in), gsub, pattern="\\|", replacement='_')
+names(Hebcy2_in)<-lapply(names(Hebcy2_in), gsub, pattern="\\|", replacement='_')
+names(Lacbi2_in)<-lapply(names(Lacbi2_in), gsub, pattern="\\|", replacement='_')
+names(Paxin1_in)<-lapply(names(Paxin1_in), gsub, pattern="\\|", replacement='_')
+names(Pilcr1_in)<-lapply(names(Pilcr1_in), gsub, pattern="\\|", replacement='_')
+names(Pismi1_in)<-lapply(names(Pismi1_in), gsub, pattern="\\|", replacement='_')
+names(Sclci1_in)<-lapply(names(Sclci1_in), gsub, pattern="\\|", replacement='_')
+names(Theter1_in)<-lapply(names(Theter1_in), gsub, pattern="\\|", replacement='_')
+names(Thega1_in)<-lapply(names(Thega1_in), gsub, pattern="\\|", replacement='_')
+names(Rhivi1_in)<-lapply(names(Rhivi1_in), gsub, pattern="\\|", replacement='_')
+names(Rhives1_in)<-lapply(names(Rhives1_in), gsub, pattern="\\|", replacement='_')
+names(Rhisa1_in)<-lapply(names(Rhisa1_in), gsub, pattern="\\|", replacement='_')
+names(Ruscom1_in)<-lapply(names(Ruscom1_in), gsub, pattern="\\|", replacement='_')
+names(Rusbre1_in)<-lapply(names(Rusbre1_in), gsub, pattern="\\|", replacement='_')
+names(Pisti1_in)<-lapply(names(Pisti1_in), gsub, pattern="\\|", replacement='_')
+names(Lacam2_in)<-lapply(names(Lacam2_in), gsub, pattern="\\|", replacement='_')
+names(Hydru2_in)<-lapply(names(Hydru2_in), gsub, pattern="\\|", replacement='_')
+names(Gaumor1_in)<-lapply(names(Gaumor1_in), gsub, pattern="\\|", replacement='_')
+names(Gyrli1_in)<-lapply(names(Gyrli1_in), gsub, pattern="\\|", replacement='_')
+names(Cananz1_in)<-lapply(names(Cananz1_in), gsub, pattern="\\|", replacement='_')
+names(Hyssto1_in)<-lapply(names(Hyssto1_in), gsub, pattern="\\|", replacement='_')
+
 
 #get fastas of only positive hits for EffectorP analysis 
 Suivar1_SSP_fastas<- Suivar1_in[c(which(names(Suivar1_in) %in% Suivar1.3_subset$V1))]
@@ -696,6 +845,9 @@ Suibr2_SSP_fastas<- Suibr2_in[c(which(names(Suibr2_in) %in% Suibr2.3_subset$V1))
 Suibov1_SSP_fastas<- Suibov1_in[c(which(names(Suibov1_in) %in% Suibov1.3_subset$V1))]
 Suiamp1_SSP_fastas<- Suiamp1_in[c(which(names(Suiamp1_in) %in% Suiamp1.3_subset$V1))]
 Suiame1_SSP_fastas<- Suiame1_in[c(which(names(Suiame1_in) %in% Suiame1.3_subset$V1))]
+Suifus1_SSP_fastas<- Suifus1_in[c(which(names(Suifus1_in) %in% Suifus1.3_subset$V1))]
+
+
 #non-Suillus set
 Rhivul1_SSP_fastas<- Rhivul1_in[c(which(names(Rhivul1_in) %in% Rhivul1.3_subset$V1))]
 Rhitru1_SSP_fastas<- Rhitru1_in[c(which(names(Rhitru1_in) %in% Rhitru1.3_subset$V1))]
@@ -706,9 +858,23 @@ Paxin1_SSP_fastas<- Paxin1_in[c(which(names(Paxin1_in) %in% Paxin1.3_subset$V1))
 Pilcr1_SSP_fastas<- Pilcr1_in[c(which(names(Pilcr1_in) %in% Pilcr1.3_subset$V1))]
 Pismi1_SSP_fastas<- Pismi1_in[c(which(names(Pismi1_in) %in% Pismi1.3_subset$V1))]
 Sclci1_SSP_fastas<- Sclci1_in[c(which(names(Sclci1_in) %in% Sclci1.3_subset$V1))]
+Theter1_SSP_fastas<- Theter1_in[c(which(names(Theter1_in) %in% Theter1.3_subset$V1))]
+Thega1_SSP_fastas<- Thega1_in[c(which(names(Thega1_in) %in% Thega1.3_subset$V1))]
+Rhivi1_SSP_fastas<- Rhivi1_in[c(which(names(Rhivi1_in) %in% Rhivi1.3_subset$V1))]
+Rhives1_SSP_fastas<- Rhives1_in[c(which(names(Rhives1_in) %in% Rhives1.3_subset$V1))]
+Rhisa1_SSP_fastas<- Rhisa1_in[c(which(names(Rhisa1_in) %in% Rhisa1.3_subset$V1))]
+Ruscom1_SSP_fastas<- Ruscom1_in[c(which(names(Ruscom1_in) %in% Ruscom1.3_subset$V1))]
+Rusbre1_SSP_fastas<- Rusbre1_in[c(which(names(Rusbre1_in) %in% Rusbre1.3_subset$V1))]
+Pisti1_SSP_fastas<- Pisti1_in[c(which(names(Pisti1_in) %in% Pisti1.3_subset$V1))]
+Lacam2_SSP_fastas<- Lacam2_in[c(which(names(Lacam2_in) %in% Lacam2.3_subset$V1))]
+Hydru2_SSP_fastas<- Hydru2_in[c(which(names(Hydru2_in) %in% Hydru2.3_subset$V1))]
+Gaumor1_SSP_fastas<- Gaumor1_in[c(which(names(Gaumor1_in) %in% Gaumor1.3_subset$V1))]
+Gyrli1_SSP_fastas<- Gyrli1_in[c(which(names(Gyrli1_in) %in% Gyrli1.3_subset$V1))]
+Cananz1_SSP_fastas<- Cananz1_in[c(which(names(Cananz1_in) %in% Cananz1.3_subset$V1))]
+Hyssto1_SSP_fastas<- Hyssto1_in[c(which(names(Hyssto1_in) %in% Hyssto1.3_subset$V1))]
 
 
-#make sure nothing screwy went on and the fasta are the correct lenght
+#make sure nothing screwy went on and the fasta are the correct length
 #n SSP's 
 totals.2[1,]
 # length of a few files
@@ -716,9 +882,9 @@ length(Suivar1_SSP_fastas)
 length(Suitom1_SSP_fastas)
 length(Suiamp1_SSP_fastas)
 length(Suisu1_SSP_fastas)
-# numbers match. 
+#numbers match
 
-#print fastas to files to run EffectorP
+#print fastas to files to run EffectorP / Orthofinder
 write.fasta(Suivar1_SSP_fastas, names = names(Suivar1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Suivar1_SSPs_for_EffectorP.fasta")
 write.fasta(Suitom1_SSP_fastas, names = names(Suitom1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Suitom1_SSPs_for_EffectorP.fasta")
 write.fasta(Suisub1_SSP_fastas, names = names(Suisub1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Suisub1_SSPs_for_EffectorP.fasta")
@@ -738,6 +904,8 @@ write.fasta(Suibr2_SSP_fastas, names = names(Suibr2_SSP_fastas), open = "w", nbc
 write.fasta(Suibov1_SSP_fastas, names = names(Suibov1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Suibov1_SSPs_for_EffectorP.fasta")
 write.fasta(Suiamp1_SSP_fastas, names = names(Suiamp1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Suiamp1_SSPs_for_EffectorP.fasta")
 write.fasta(Suiame1_SSP_fastas, names = names(Suiame1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Suiame1_SSPs_for_EffectorP.fasta")
+write.fasta(Suifus1_SSP_fastas, names = names(Suifus1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Suifus1_SSPs_for_EffectorP.fasta")
+
 #non-Suillus set
 write.fasta(Rhivul1_SSP_fastas, names = names(Rhivul1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Rhivul1_SSPs_for_EffectorP.fasta")
 write.fasta(Rhitru1_SSP_fastas, names = names(Rhitru1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Rhitru1_SSPs_for_EffectorP.fasta")
@@ -748,6 +916,24 @@ write.fasta(Paxin1_SSP_fastas, names = names(Paxin1_SSP_fastas), open = "w", nbc
 write.fasta(Pilcr1_SSP_fastas, names = names(Pilcr1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Pilcr1_SSPs_for_EffectorP.fasta")
 write.fasta(Pismi1_SSP_fastas, names = names(Pismi1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Pismi1_SSPs_for_EffectorP.fasta")
 write.fasta(Sclci1_SSP_fastas, names = names(Sclci1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Sclci1_SSPs_for_EffectorP.fasta")
+write.fasta(Theter1_SSP_fastas, names = names(Theter1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Theter1_SSPs_for_EffectorP.fasta")
+write.fasta(Thega1_SSP_fastas, names = names(Thega1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Thega1_SSPs_for_EffectorP.fasta")
+write.fasta(Rhivi1_SSP_fastas, names = names(Rhivi1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Rhivi1_SSPs_for_EffectorP.fasta")
+write.fasta(Rhives1_SSP_fastas, names = names(Rhives1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Rhives1_SSPs_for_EffectorP.fasta")
+write.fasta(Rhisa1_SSP_fastas, names = names(Rhisa1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Rhisa1_SSPs_for_EffectorP.fasta")
+write.fasta(Ruscom1_SSP_fastas, names = names(Ruscom1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Ruscom1_SSPs_for_EffectorP.fasta")
+write.fasta(Rusbre1_SSP_fastas, names = names(Rusbre1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Rusbre1_SSPs_for_EffectorP.fasta")
+write.fasta(Pisti1_SSP_fastas, names = names(Pisti1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Pisti1_SSPs_for_EffectorP.fasta")
+write.fasta(Lacam2_SSP_fastas, names = names(Lacam2_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Lacam2_SSPs_for_EffectorP.fasta")
+write.fasta(Hydru2_SSP_fastas, names = names(Hydru2_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Hydru2_SSPs_for_EffectorP.fasta")
+write.fasta(Gaumor1_SSP_fastas, names = names(Gaumor1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Gaumor1_SSPs_for_EffectorP.fasta")
+write.fasta(Gyrli1_SSP_fastas, names = names(Gyrli1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Gyrli1_SSPs_for_EffectorP.fasta")
+write.fasta(Cananz1_SSP_fastas, names = names(Cananz1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Cananz1_SSPs_for_EffectorP.fasta")
+write.fasta(Hyssto1_SSP_fastas, names = names(Hyssto1_SSP_fastas), open = "w", nbchar = 60, as.string = FALSE, file.out = "Hyssto1_SSPs_for_EffectorP.fasta")
+
+
+
+#:::you are here
 
 
 ########
@@ -794,6 +980,10 @@ Suiamp1_effectors<- seqinr::read.fasta(file = "Suiamp1_EffectorCandidates.fasta"
                                        seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Suiame1_effectors<- seqinr::read.fasta(file = "Suiame1_EffectorCandidates.fasta", 
                                        seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Suifus1_effectors<- seqinr::read.fasta(file = "Suifus1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+
+
 #non-Suillus set
 Rhivul1_effectors<- seqinr::read.fasta(file = "Rhivul1_EffectorCandidates.fasta", 
                                        seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
@@ -813,6 +1003,39 @@ Pismi1_effectors<- seqinr::read.fasta(file = "Pismi1_EffectorCandidates.fasta",
                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Sclci1_effectors<- seqinr::read.fasta(file = "Sclci1_EffectorCandidates.fasta", 
                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Theter1_effectors<- seqinr::read.fasta(file = "Theter1_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Thega1_effectors<- seqinr::read.fasta(file = "Thega1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Rhivi1_effectors<- seqinr::read.fasta(file = "Rhivi1_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Rhives1_effectors<- seqinr::read.fasta(file = "Rhives1_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Rhisa1_effectors<- seqinr::read.fasta(file = "Rhisa1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Ruscom1_effectors<- seqinr::read.fasta(file = "Ruscom1_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Rusbre1_effectors<- seqinr::read.fasta(file = "Rusbre1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Pisti1_effectors<- seqinr::read.fasta(file = "Pisti1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Lacam2_effectors<- seqinr::read.fasta(file = "Lacam2_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Hydru2_effectors<- seqinr::read.fasta(file = "Hydru2_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Gaumor1_effectors<- seqinr::read.fasta(file = "Gaumor1_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Gyrli1_effectors<- seqinr::read.fasta(file = "Gyrli1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Cananz1_effectors<- seqinr::read.fasta(file = "Cananz1_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Hyssto1_effectors<- seqinr::read.fasta(file = "Hyssto1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+
+
+
+#:::you are here 
+
 
 
 
