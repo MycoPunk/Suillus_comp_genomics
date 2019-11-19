@@ -459,7 +459,8 @@ totals.2<- data.frame(cbind(Suivar1,
                             Suiocc1, 
                             Suilu4, 
                             Suilak1, 
-                            Suihi1, 
+                            Suihi1,
+                            Suigr1,
                             Suidec1, 
                             Suicot1, 
                             Suicli1, 
@@ -492,7 +493,7 @@ totals.2<- data.frame(cbind(Suivar1,
                             Cananz1,
                             Hyssto1
                             ),
-                      row.names = "#SSPs_signalP,TMHMM,lt_300aa")
+                      row.names = "SSPs_signalP,TMHMM,lt_300aa")
 totals.2[1,]
 
 #write out totals to a file
@@ -777,7 +778,6 @@ Hyssto1.2_subset<- isolate_ID(Hyssto1_subset)
 Hyssto1.3_subset<- data.frame(lapply(Hyssto1.2_subset, gsub, pattern=' ', replacement=''))
 
 
-#YOU ARE HERE:
 #change all "|" to "_" in the input files
 names(Suivar1_in)<-lapply(names(Suivar1_in), gsub, pattern="\\|", replacement='_')
 names(Suitom1_in)<-lapply(names(Suitom1_in), gsub, pattern="\\|", replacement='_')
@@ -1090,7 +1090,8 @@ total_effectors<- data.frame(cbind(Suivar1,
                                    Suiocc1, 
                                    Suilu4, 
                                    Suilak1, 
-                                   Suihi1, 
+                                   Suihi1,
+                                   Suigr1,
                                    Suidec1, 
                                    Suicot1, 
                                    Suicli1, 
@@ -1182,7 +1183,8 @@ total_SSPs<- data.frame(cbind(Suivar1,
                               Suiocc1, 
                               Suilu4, 
                               Suilak1, 
-                              Suihi1, 
+                              Suihi1,
+                              Suigr1,
                               Suidec1, 
                               Suicot1, 
                               Suicli1, 
@@ -1273,7 +1275,8 @@ total_proteins<-data.frame(cbind(Suivar1,
                                  Suiocc1, 
                                  Suilu4, 
                                  Suilak1, 
-                                 Suihi1, 
+                                 Suihi1,
+                                 Suigr1,
                                  Suidec1, 
                                  Suicot1, 
                                  Suicli1, 
@@ -1324,8 +1327,10 @@ percent_effectors_out_of_SSPs<-signif(percent_effectors_out_of_SSPs, digits = 4)
 #slap it together
 results_with_percentages<- cbind(results.1, percent_SSPs_out_of_total_genes, percent_effectors_out_of_total_genes, percent_effectors_out_of_SSPs)
 
+colnames(results_with_percentages)
+
 #write it up
-write.csv(results, quote = FALSE, file = "SSP_and_Effector_totals.csv")
+#write.csv(results, quote = FALSE, file = "SSP_and_Effector_totals_SP5.csv")
 
 #read in genome size file and run stats for table
 genome_size_df<- read.csv("genome_size_data.csv")
@@ -1344,26 +1349,48 @@ Other_genome_size_mean<- mean(Other_genome_size$genome_size)
 Other_genome_size_SD<- sd(Other_genome_size$genome_size)
 Other_genome_size_SE<- std(Other_genome_size$genome_size)
 
-
-
-
-#you are here:::
-
 #test normality 
 shapiro.test(Suillus_genome_size$genome_size)
 #not normal
 shapiro.test(Other_genome_size$genome_size)
 #not normal
 
-
 #test for equal variance 
 var.test(Suillus_genome_size$genome_size, Other_genome_size$genome_size)
-#variance is not sif. different, but can't trust becasue not nomal, be conservatice and use unequal var in test
+#variance is sig. different,be conservative and use unequal var in test
 
 #t-test 
 t.test(Suillus_genome_size$genome_size, Other_genome_size$genome_size, var.equal = FALSE)
 
 
+#Randomization test to confirm t-test choice
+n=10000
+rand.dist<-rep(NA,n)
+actual_diff_GS<- Suillus_genome_size_mean - Other_genome_size_mean
+
+#generate the list of names and values to be scrambeled 
+#group<-c(rep("a_Suillus",nrow(Suillus_genome_size)),rep("b_Other",nrow(Other_genome_size)))
+
+a<- data.frame(Suillus_genome_size$genome_size, rep("a_Suillus"))
+colnames(a)<- c("GS", "group")
+
+b<- data.frame(Other_genome_size$genome_size, rep("b_Other"))
+colnames(b)<- c("GS", "group")
+GS_df<- rbind(a,b)
+
+#attach it to the numbers
+df_to_scramble<-data.frame(GS_df$GS,group)
+attach(df_to_scramble)
+
+for (i in 1:n){
+  sample.group<-sample(group)
+  rand.dist[i]<-mean(as.numeric(GS_df$GS[sample.group=="a_Suillus"])) -
+    mean(as.numeric(GS_df$GS[sample.group=="b_Other"]))
+}
+
+p_value<-mean(abs(rand.dist)>=abs(actual_diff_GS))
+p_value
+#0.8589
 
 #split and get stats for n proteins 
 results_with_percentages_for_split<- cbind(results_with_percentages, row.names(results_with_percentages))
@@ -1378,11 +1405,15 @@ Suillus_ssps[] <- lapply(Suillus_ssps, function(x) {
 })
 sapply(Suillus_ssps, class)
 
+
+class(Suillus_ssps$n_putative_proteins_from_gene_cat)
+
 #and the other one too...
 Other_ssps[] <- lapply(Other_ssps, function(x) {
   if(is.character(x)) as.numeric(as.character(x)) else x
 })
 sapply(Other_ssps, class)
+
 
 Suillus_n_prot_mean<- mean(Suillus_ssps$n_putative_proteins_from_gene_cat)
 Suillus_n_prot_SD<- sd(Suillus_ssps$n_putative_proteins_from_gene_cat)
@@ -1394,17 +1425,50 @@ Other_n_prot_SE<- std(Other_ssps$n_putative_proteins_from_gene_cat)
 
 
 #test normality 
-shapiro.test(Suillus_ssps$n_putative_proteins_from_gene_ca)
+shapiro.test(Suillus_ssps$n_putative_proteins_from_gene_cat)
 #normal
-shapiro.test(Other_ssps$n_putative_proteins_from_gene_ca)
+shapiro.test(Other_ssps$n_putative_proteins_from_gene_cat)
 #normal
 
 #test for equal variance 
 var.test(Suillus_ssps$n_putative_proteins_from_gene_cat, Other_ssps$n_putative_proteins_from_gene_cat)
-#variance is not sif. different 
+#variance is sig. different 
 
 #t-test 
-t.test(Suillus_ssps$n_putative_proteins_from_gene_cat, Other_ssps$n_putative_proteins_from_gene_cat, var.equal = TRUE)
+t.test(Suillus_ssps$n_putative_proteins_from_gene_cat, Other_ssps$n_putative_proteins_from_gene_cat, var.equal = FALSE)
+
+
+####get p val with a randomization test
+#Randomization test to confirm t-test choice
+n=10000
+rand.dist<-rep(NA,n)
+actual_diff_proteins<- Suillus_n_prot_mean - Other_n_prot_mean
+#SSPs_out_of_prot_df is the original data frame, not parced by species
+
+#generate the list of names to be scrambeled 
+group<-c(rep("a_Suillus",nrow(Suillus_ssps)),rep("b_Other",nrow(Other_ssps)))
+
+a<- data.frame(Suillus_ssps$n_putative_proteins_from_gene_cat, rep("a_Suillus"))
+colnames(a)<- c("prot", "group")
+
+b<- data.frame(Other_ssps$n_putative_proteins_from_gene_cat, rep("b_Other"))
+colnames(b)<- c("prot", "group")
+proteins_df<- rbind(a,b)
+
+
+#attach it to the numbers
+df_to_scramble<-data.frame(proteins_df$prot,group)
+attach(df_to_scramble)
+
+for (i in 1:n){
+  sample.group<-sample(group)
+  rand.dist[i]<-mean(as.numeric(proteins_df$prot[sample.group=="a_Suillus"])) -
+    mean(as.numeric(proteins_df$prot[sample.group=="b_Other"]))
+}
+
+p_value<-mean(abs(rand.dist)>=abs(actual_diff_proteins))
+p_value
+# 0.6307
 
 
 #get stats for SSP's 
@@ -1418,16 +1482,30 @@ Other_ssp_SE<- std(Other_ssps$X.SSPs_signalP.TMHMM.lt_300aa)
 
 #test normality 
 shapiro.test(Suillus_ssps$X.SSPs_signalP.TMHMM.lt_300aa)
-#normal-ish
+#not normal
 shapiro.test(Other_ssps$X.SSPs_signalP.TMHMM.lt_300aa)
 #normal
 
 #test for equal variance 
 var.test(Suillus_ssps$X.SSPs_signalP.TMHMM.lt_300aa, Other_ssps$X.SSPs_signalP.TMHMM.lt_300aa)
-#variance is not sif. different 
+#variance is sig. different 
 
 #t-test 
-t.test(Suillus_ssps$X.SSPs_signalP.TMHMM.lt_300aa, Other_ssps$X.SSPs_signalP.TMHMM.lt_300aa, var.equal = TRUE)
+t.test(Suillus_ssps$X.SSPs_signalP.TMHMM.lt_300aa, Other_ssps$X.SSPs_signalP.TMHMM.lt_300aa, var.equal = FALSE)
+#not significantly different
+
+
+
+
+
+
+########
+#put randomization test for SSPs here? is this hiding down with the figures for some reason? 
+######  
+
+
+
+
 
 
 
@@ -1442,47 +1520,120 @@ Other_effectors_SE<- std(Other_ssps$n_putative_effectors_from_EffectorP)
 
 #test normality 
 shapiro.test(Suillus_ssps$n_putative_effectors_from_EffectorP)
-#not normal
+#normal
 shapiro.test(Other_ssps$n_putative_effectors_from_EffectorP)
-#not normal
+#normal
 
 #test for equal variance 
 var.test(Suillus_ssps$n_putative_effectors_from_EffectorP, Other_ssps$n_putative_effectors_from_EffectorP)
-#variance is not sif. different, but we can't trust it becaseu it's not normal, use conservatie var = FALSE in test
+#variance is sig. different
 
 #t-test 
 t.test(Suillus_ssps$n_putative_effectors_from_EffectorP, Other_ssps$n_putative_effectors_from_EffectorP, var.equal = FALSE)
 #not different
 
 
+
+
 #parse the SSP's from the SSSP's
-#to do this, upload the outout fasta files of SSP's and run them in orthofinder. 
+#to do this, upload the outout fasta files of putative SSP's and run them in orthofinder in a pbs script like so: 
+
+##!/bin/bash -l 
+##PBS -l walltime=10:00:00,mem=62gb,nodes=2:ppn=20
+##PBS -m abe 
+##PBS -M llofgren@umn.edu
+
+##cd /home/kennedyp/llofgren/COMP/ortho_finder
+##module load orthofinder
+##cp diamond ~/bin
+##export PATH=$PATH:~/bin/
+##OrthoFinder-2.2.7/orthofinder -f SSP_analysis -S diamond
+#where 'SSP_analysis' is a folder containing all the fasta files of interest
+
+
 ortho_finder_SSP_results<- read.table("Statistics_PerSpecies_all_ECM.csv", sep = ",", row.names = 1, header=TRUE)
 
 #the perninant info: 
 SSP_vs_SSSP1<- ortho_finder_SSP_results[1:3,]
 SSP_vs_SSSP<- t(SSP_vs_SSSP1)
 
-
 #get percent SSSP's of SSP's
 percent_SSPs_out_of_SSSPs<- (100*(SSP_vs_SSSP[,3]) / SSP_vs_SSSP[,1])
 
 percent_SSPs_out_of_SSSPs<- data.frame(signif(percent_SSPs_out_of_SSSPs, digits = 3))
 
+#pull out row names to set groups 
+names.list<- row.names(percent_SSPs_out_of_SSSPs)
+percent_SSPs_out_of_SSSPs.2<- cbind(percent_SSPs_out_of_SSSPs, names.list)
+
+Suillus_ssps_vs_sssps<-data.frame(percent_SSPs_out_of_SSSPs.2[ grep("Sui", percent_SSPs_out_of_SSSPs.2[,2],), ])
+Suillus_ssps_vs_sssps<- Suillus_ssps_vs_sssps[,1]
+
+Other_ssps_vs_sssps<- data.frame(percent_SSPs_out_of_SSSPs.2[ grep("Sui", percent_SSPs_out_of_SSSPs.2[,2], invert = TRUE), ])
+Other_ssps_vs_sssps<- Other_ssps_vs_sssps[,1]
+
+
+#SSPs vs n prot
+names.list<- row.names(SSP_vs_SSSP)
+SSP_vs_SSSP2<- data.frame(cbind(SSP_vs_SSSP, names.list))
+SSP_vs_SSSP_raw_Suillus<-data.frame(SSP_vs_SSSP2[ grep("Sui", SSP_vs_SSSP2[,4],), ])
+SSP_vs_SSSP_raw_Suillus<- SSP_vs_SSSP_raw_Suillus[,1:3]
+SSP_vs_SSSP_raw_Other<-data.frame(SSP_vs_SSSP2[ grep("Sui", SSP_vs_SSSP2[,4], invert = TRUE), ])
+SSP_vs_SSSP_raw_Other<- SSP_vs_SSSP_raw_Other[,1:3]
+
+#ugh. turn them numeric again
+SSP_vs_SSSP_raw_Other[] <- lapply(SSP_vs_SSSP_raw_Other, function(x) {
+  if(is.character(x)) as.numeric(as.character(x)) else x
+})
+sapply(SSP_vs_SSSP_raw_Other, class)
+
+SSP_vs_SSSP_raw_Suillus[] <- lapply(SSP_vs_SSSP_raw_Suillus, function(x) {
+  if(is.character(x)) as.numeric(as.character(x)) else x
+})
+sapply(SSP_vs_SSSP_raw_Suillus, class)
+
+
+#get number SSP's as a percentage of total proteins 
+Suillus_ssps[,1] #total Suillus prot
+Other_ssps[,1] #total Other ECM prot
+
+Suillus_ssps[,2] #total Suillus SSPs
+Other_ssps[,2] #total Other ECM SSPs
+
+percent_SSPs_out_of_prot_Suillus<- (100*Suillus_ssps[,2] / Suillus_ssps[,1])
+percent_SSPs_out_of_prot_Suillus<- data.frame(signif(percent_SSPs_out_of_prot_Suillus, digits = 3))
+
+percent_SSPs_out_of_prot_Other<- (100*Other_ssps[,2] / Other_ssps[,1])
+percent_SSPs_out_of_prot_Other<- data.frame(signif(percent_SSPs_out_of_prot_Other, digits = 3))
+
+#strip
+Suillus<- cbind(percent_SSPs_out_of_prot_Suillus, rep("a_Suillus", length(percent_SSPs_out_of_prot_Suillus)))
+colnames(Suillus)<- c("%", "group")
+
+Other_ECM<- cbind(percent_SSPs_out_of_prot_Other, rep("b_Other", length(percent_SSPs_out_of_prot_Other)))
+colnames(Other_ECM)<- c("%", "group")
+
+SSPs_out_of_prot_df<- data.frame(rbind(Suillus, Other_ECM))
+
 
 
 
 #######START HERE WITH GRAPHS######## 
+##color pallet:"#4F5C69", "#838558", "#A49C4C","#E4D9AC", "#F9F1D2", "#FBE898", "#FFCC6E", "#E6A871"
+#Suillus:
+#Other: 
+
+
 ######### % SSP's out of total proteins 
-med1= mean(SSPs_out_of_prot_df$`%` [SSPs_out_of_prot_df$group == "a_Suillus"])
-med2= mean(SSPs_out_of_prot_df$`%` [SSPs_out_of_prot_df$group == "b_Other"])
-par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0))
-stripchart(SSPs_out_of_prot_df$`%` ~ SSPs_out_of_prot_df$group,
+med1= mean(as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "a_Suillus"])
+med2= mean(as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "b_Other"])
+par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0), las=1)
+stripchart(SSPs_out_of_prot_df$X. ~ SSPs_out_of_prot_df$group,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
-           pch = 16, 
-           col = c("#F0502B",  "#F79552"),
-           bg = rep(c("#F0502B", "#F79552")),
+           pch = 19, 
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
            cex.axis = 0.7,
            ylim=c(0,4), 
            ylab = "% SSPs out of all proteins", 
@@ -1495,7 +1646,65 @@ segments(x0 = .7, y0 =  med1, x1 = 1.3, y1=med1, lwd = 2, col = "black" )
 segments(x0 = 1.7, y0 =  med2, x1 = 2.3, y1=med2, lwd = 2, col = "black" )
 #add boxplot around the data? 
 #boxplot(`%` ~ group, data = SSPs_out_of_SSSPs_df, add=TRUE, range=0, whisklty = 0, staplelty = 0)
+mtext(c("a", "a"),side=1,at=c(1,2),line = -8, font = 3)
 
+
+#stats on the above
+#test normality 
+shapiro.test(as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "a_Suillus"])
+shapiro.test(as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "b_Other"])
+#normal
+
+#test for equal variance 
+var.test((as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "a_Suillus"]), (as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "b_Other"]))
+#variance is equal
+
+#t-test 
+t.test((as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "a_Suillus"]), (as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "b_Other"]), var.equal = TRUE)
+#not different
+
+std <- function(x) sd(x)/sqrt(length(x))
+
+#split df
+SSPs_out_of_prot_df_Suillus<- SSPs_out_of_prot_df[SSPs_out_of_prot_df$group == "a_Suillus",]
+SSPs_out_of_prot_df_Other<- SSPs_out_of_prot_df[SSPs_out_of_prot_df$group == "b_Other",]
+
+#get means
+mean_SSPs_out_of_prot_df_Suillus<- mean(SSPs_out_of_prot_df_Suillus$X.)
+mean_SSPs_out_of_prot_df_Other<- mean(SSPs_out_of_prot_df_Other$X.)
+
+#get standard error
+SSPs_out_of_prot_df_Suillus_SE<- std(SSPs_out_of_prot_df_Suillus$X.)  
+SSPs_out_of_prot_df_Other_SE<- std(SSPs_out_of_prot_df_Other$X.) 
+
+####get p val with a randomization test
+#Randomization test to confirm t-test choice
+n=10000
+rand.dist<-rep(NA,n)
+actual_diff_SSPs_out_of_prot<- mean(SSPs_out_of_prot_df_Suillus$X.) - mean(SSPs_out_of_prot_df_Other$X.)
+#SSPs_out_of_prot_df is the original data frame, not parced by species
+
+#generate the list of names to be scrambeled 
+group<-c(rep("a_Suillus",nrow(SSPs_out_of_prot_df_Suillus)),rep("b_Other",nrow(SSPs_out_of_prot_df_Other)))
+
+#attach it to the numbers
+df_to_scramble<-data.frame(SSPs_out_of_prot_df$X.,group)
+attach(df_to_scramble)
+
+for (i in 1:n){
+  sample.county<-sample(group)
+  rand.dist[i]<-mean(SSPs_out_of_prot_df$X.[sample.county=="a_Suillus"]) -
+    mean(SSPs_out_of_prot_df$X.[sample.county=="b_Other"])
+}
+
+p_value<-mean(abs(rand.dist)>=abs(actual_diff_SSPs_out_of_prot))
+p_value
+
+#how does it compare to the original?
+t_test_og<- t.test((as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "a_Suillus"]), (as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "b_Other"]), var.equal = FALSE)
+t_test_og$p.value
+
+#pretty comprable
 
 
 
@@ -1521,10 +1730,10 @@ stripchart(SSPs_out_of_SSSPs_df$`%` ~ SSPs_out_of_SSSPs_df$group,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 19, 
-           col = c("#F0502B",  "#F79552"),
-           bg = rep(c("#F0502B", "#F79552")),
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
            cex.axis = 0.7,
-           ylim=c(0,70), 
+           ylim=c(0,80), 
            ylab = "% SSSPs out of SSPs", 
            axes = FALSE, 
            cex = 1.3)
@@ -1533,11 +1742,71 @@ axis(2)
 mtext(text = c("Suillus", "Other ECM"),side=1,at=c(1,2),line = 1, font = 3)
 segments(x0 = .7, y0 =  med3, x1 = 1.3, y1=med3, lwd = 2, col = "black" )
 segments(x0 = 1.7, y0 =  med4, x1 = 2.3, y1=med4, lwd = 2, col = "black" )
+mtext(c("a", "b"),side=1,at=c(1,2),line = -8, font = 3)
+
+#stats on the above
+#test normality 
+shapiro.test(SSPs_out_of_SSSPs_df$`%` [SSPs_out_of_SSSPs_df$group == "a_Suillus"])
+shapiro.test(SSPs_out_of_SSSPs_df$`%` [SSPs_out_of_SSSPs_df$group == "b_Other"])
+#normal, can't reject null asum. that dist is normal
+
+#test for equal variance 
+var.test(as.numeric(SSPs_out_of_SSSPs_df$`%` [SSPs_out_of_SSSPs_df$group == "a_Suillus"]), 
+         (SSPs_out_of_SSSPs_df$`%` [SSPs_out_of_SSSPs_df$group == "b_Other"]))
+#variance is not sig. different
+
+#t-test 
+t.test((as.numeric(SSPs_out_of_SSSPs_df$`%`) [SSPs_out_of_SSSPs_df$group == "a_Suillus"]), (as.numeric(SSPs_out_of_SSSPs_df$`%`) [SSPs_out_of_SSSPs_df$group == "b_Other"]), var.equal = TRUE)
+#different!
+
+#split df
+SSSPs_out_of_SSPs_df_Suillus<- SSPs_out_of_SSSPs_df[SSPs_out_of_SSSPs_df$group == "a_Suillus",]
+SSSPs_out_of_SSPs_df_Other<- SSPs_out_of_SSSPs_df[SSPs_out_of_SSSPs_df$group == "b_Other",]
+
+#get means
+mean_SSSPs_out_of_SSPs_df_Suillus<- mean(SSSPs_out_of_SSPs_df_Suillus$`%`)
+mean_SSSPs_out_of_SSPs_df_Other<- mean(SSSPs_out_of_SSPs_df_Other$`%`)
+
+#get standard error
+SSSPs_out_of_SSPs_df_Suillus_SE<- std(SSSPs_out_of_SSPs_df_Suillus$`%`)  
+SSSPs_out_of_SSPs_df_Other_SE<- std(SSSPs_out_of_SSPs_df_Other$`%`) 
+
+
+
+#Randomization test
+n=10000
+rand.dist3<-rep(NA,n)
+actual_diff_SSSPs_out_of_SSPs<- mean_SSSPs_out_of_SSPs_df_Suillus - mean_SSSPs_out_of_SSPs_df_Other
+#SSPs_out_of_prot_df is the original data frame, not parced by species
+
+#generate the list of names to be scrambeled 
+group<-c(rep("a_Suillus",nrow(SSSPs_out_of_SSPs_df_Suillus)),rep("b_Other",nrow(SSSPs_out_of_SSPs_df_Other)))
+
+#attach it to the numbers
+df_to_scramble<-data.frame(SSPs_out_of_SSSPs_df$`%`,group)
+attach(df_to_scramble)
+
+for (i in 1:n){
+  sample.group<-sample(group)
+  rand.dist3[i]<-mean(SSPs_out_of_SSSPs_df$`%`[sample.group=="a_Suillus"]) -
+    mean(SSPs_out_of_SSSPs_df$`%`[sample.group=="b_Other"])
+}
+
+p_value<-mean(abs(rand.dist3)>=abs(actual_diff_SSSPs_out_of_SSPs))
+
+mean(abs(rand.dist3))
+abs(actual_diff_SSSPs_out_of_SSPs)
+p_value
+#1e-04
+
+#how does it compare to the original?
+t_test_og<- t.test((as.numeric(SSPs_out_of_SSSPs_df$`%`) [SSPs_out_of_SSSPs_df$group == "a_Suillus"]), (as.numeric(SSPs_out_of_SSSPs_df$`%`) [SSPs_out_of_SSSPs_df$group == "b_Other"]), var.equal = FALSE)
+t_test_og$p.value
+
 
 
 
 #######Effectors as a percentage of SSP's########
-
 percent_effector_Suillus<- as.numeric(Suillus_ssps$percent_effectors_out_of_SSPs)
 percent_effector_Other<- as.numeric(Other_ssps$percent_effectors_out_of_SSPs)
 
@@ -1547,20 +1816,23 @@ colnames(Suillus3)<- c("%", "group")
 Other_ECM3<- cbind(percent_effector_Other, rep("b_Other", length(percent_effector_Other)))
 colnames(Other_ECM3)<- c("%", "group")
 
-effectors_out_of_SSSPs_df<- data.frame(rbind(Suillus3, Other_ECM3))
+effectors_out_of_SSSPs_df<- as.data.frame(rbind(Suillus3, Other_ECM3))
 
 
 med3= mean(Suillus_ssps$percent_effectors_out_of_SSPs)
 med4= mean(Other_ssps$percent_effectors_out_of_SSPs)
+#combine the data
+
+
 par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0))
-stripchart(effectors_out_of_SSSPs_df$X. ~ effectors_out_of_SSSPs_df$group,
+stripchart(effectors_out_of_SSSPs_df$`%` ~ effectors_out_of_SSSPs_df$group,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 19, 
-           col = c("#F0502B",  "#F79552"),
-           bg = rep(c("#F0502B", "#F79552")),
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
            cex.axis = 0.7,
-           ylim=c(0,50), 
+           ylim=c(0,60), 
            ylab = "% Effectors out of SSPs", 
            axes = FALSE, 
            cex = 1.3)
@@ -1569,6 +1841,112 @@ axis(2)
 mtext(text = c("Suillus", "Other ECM"),side=1,at=c(1,2),line = 1, font = 3)
 segments(x0 = .7, y0 =  med3, x1 = 1.3, y1=med3, lwd = 2, col = "black" )
 segments(x0 = 1.7, y0 =  med4, x1 = 2.3, y1=med4, lwd = 2, col = "black" )
+mtext(c("a", "a"),side=1,at=c(1,2),line = -8, font = 3)
+
+
+#stats on the above
+#test normality 
+shapiro.test(as.numeric(effectors_out_of_SSSPs_df$`%`) [effectors_out_of_SSSPs_df$group == "a_Suillus"])
+#not normal
+shapiro.test(as.numeric(effectors_out_of_SSSPs_df$`%`) [effectors_out_of_SSSPs_df$group == "b_Other"])
+#normal
+
+#test for equal variance 
+var.test(as.numeric(effectors_out_of_SSSPs_df$`%` [effectors_out_of_SSSPs_df$group == "a_Suillus"]), 
+         (as.numeric(effectors_out_of_SSSPs_df$`%`) [effectors_out_of_SSSPs_df$group == "b_Other"]))
+#variance isnot sig. different
+
+#t-test 
+t.test((as.numeric(effectors_out_of_SSSPs_df$`%`) [effectors_out_of_SSSPs_df$group == "a_Suillus"]), (as.numeric(effectors_out_of_SSSPs_df$`%`) [effectors_out_of_SSSPs_df$group == "b_Other"]), var.equal = FALSE)
+#not different
+
+#transform data to meet normality assumptions
+effectors_out_of_SSSPs_df$logX1<- log(as.numeric(effectors_out_of_SSSPs_df$`%`))
+#re-test normality 
+shapiro.test(as.numeric(effectors_out_of_SSSPs_df$logX1) [effectors_out_of_SSSPs_df$group == "a_Suillus"])
+#Normal now
+shapiro.test(as.numeric(effectors_out_of_SSSPs_df$logX1) [effectors_out_of_SSSPs_df$group == "b_Other"])
+#Still normal
+
+#re-test varriance 
+#test for equal variance 
+var.test(as.numeric(effectors_out_of_SSSPs_df$logX1 [effectors_out_of_SSSPs_df$group == "a_Suillus"]), 
+         (as.numeric(effectors_out_of_SSSPs_df$logX1) [effectors_out_of_SSSPs_df$group == "b_Other"]))
+#variance equal
+
+#t-test 
+t.test((as.numeric(effectors_out_of_SSSPs_df$logX1) [effectors_out_of_SSSPs_df$group == "a_Suillus"]), (as.numeric(effectors_out_of_SSSPs_df$logX1) [effectors_out_of_SSSPs_df$group == "b_Other"]), var.equal = TRUE)
+#not different
+
+#re-graph is with log-transformed data 
+med3= mean(log(Suillus_ssps$percent_effectors_out_of_SSPs))
+med4= mean(log(Other_ssps$percent_effectors_out_of_SSPs))
+
+par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0))
+stripchart(effectors_out_of_SSSPs_df$logX1 ~ effectors_out_of_SSSPs_df$group,
+           vertical = TRUE,
+           method = "jitter", jitter = 0.2, 
+           pch = 16, 
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
+           cex.axis = 0.7,
+           ylim=c(0,10), 
+           ylab = "log % Effectors out of SSPs", 
+           axes = FALSE, 
+           cex = 1.3)
+box()
+axis(2)
+mtext(text = c("Suillus", "Other ECM"),side=1,at=c(1,2),line = 1, font = 3)
+segments(x0 = .7, y0 =  med3, x1 = 1.3, y1=med3, lwd = 2, col = "black" )
+segments(x0 = 1.7, y0 =  med4, x1 = 2.3, y1=med4, lwd = 2, col = "black" )
+mtext(c("a", "a"),side=1,at=c(1,2),line = -8, font = 3)
+
+
+#split df
+effectors_out_of_SSSPs_Suillus<- Suillus_ssps[Suillus_ssps$group == "a_Suillus",]
+effectors_out_of_SSSPs_Suillus_Other<- Other_ssps[Other_ssps$group == "b_Other",]
+
+#get means
+mean_effectors_out_of_SSSPs_Suillus<- mean(Suillus_ssps$percent_effectors_out_of_SSPs)
+mean_effectors_out_of_SSSPs_Other<- mean(Other_ssps$percent_effectors_out_of_SSPs)
+
+
+#get standard error
+effectors_out_of_SSSPs_Suillus_SE<- std(Suillus_ssps$percent_effectors_out_of_SSPs)  
+effectors_out_of_SSSPs_Other_SE<- std(Other_ssps$percent_effectors_out_of_SSPs) 
+
+
+####get p val with a randomization test
+#Randomization test to confirm t-test choice
+n=10000
+rand.dist<-rep(NA,n)
+actual_diff_effectors_out_of_SSPs<- mean_effectors_out_of_SSSPs_Suillus - mean_effectors_out_of_SSSPs_Other
+#SSPs_out_of_prot_df is the original data frame, not parced by species
+
+#generate the list of names to be scrambeled 
+group<-c(rep("a_Suillus",nrow(SSPs_out_of_prot_df_Suillus)),rep("b_Other",nrow(SSPs_out_of_prot_df_Other)))
+
+#attach it to the numbers
+df_to_scramble<-data.frame(effectors_out_of_SSSPs_df$`%`,group)
+attach(df_to_scramble)
+
+for (i in 1:n){
+  sample.group<-sample(group)
+  rand.dist[i]<-mean(as.numeric(effectors_out_of_SSSPs_df$`%`[sample.group=="a_Suillus"])) -
+    mean(as.numeric(effectors_out_of_SSSPs_df$`%`[sample.group=="b_Other"]))
+}
+
+p_value<-mean(abs(rand.dist)>=abs(actual_diff_effectors_out_of_SSPs))
+p_value
+#0.1222
+
+
+
+#how does it compare to the original?
+t_test_og<- t.test((as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "a_Suillus"]), (as.numeric(SSPs_out_of_prot_df$X.) [SSPs_out_of_prot_df$group == "b_Other"]), var.equal = FALSE)
+t_test_og$p.value
+
+
 
 
 
@@ -1595,10 +1973,10 @@ stripchart(SSP_df$X1 ~ SSP_df$X2,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#F0502B",  "#F79552"),
-           bg = rep(c("#F0502B", "#F79552")),
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
            cex.axis = 0.7,
-           ylim=c(0,550), 
+           ylim=c(0,650), 
            ylab = "SSPs", 
            axes = FALSE, 
            cex = 1.3)
@@ -1607,6 +1985,88 @@ axis(2)
 mtext(text = c("Suillus", "Other ECM"),side=1,at=c(1,2),line = 1, font = 3)
 segments(x0 = .7, y0 =  med3, x1 = 1.3, y1=med3, lwd = 2, col = "black" )
 segments(x0 = 1.7, y0 =  med4, x1 = 2.3, y1=med4, lwd = 2, col = "black" )
+mtext(c("a", "a"),side=1,at=c(1,2),line = -12, font = 3)
+
+
+#stats on the above
+#test normality 
+shapiro.test(as.numeric(SSP_df$X1) [SSP_df$X2 == "a_Suillus"])
+#not normal
+
+shapiro.test(as.numeric(SSP_df$X1) [SSP_df$X2 == "b_Other"])
+#normal
+
+#test for equal variance 
+var.test(as.numeric(SSP_df$X1 [SSP_df$X2 == "a_Suillus"]), 
+         (as.numeric(SSP_df$X1) [SSP_df$X2 == "b_Other"]))
+#variance not equal
+
+#transform data to meet normality assumptions
+SSP_df$logX1<- log(as.numeric(SSP_df$X1))
+#re-test normality 
+shapiro.test(as.numeric(SSP_df$logX1) [SSP_df$X2 == "a_Suillus"])
+#Normal now
+shapiro.test(as.numeric(SSP_df$logX1) [SSP_df$X2 == "b_Other"])
+#Still normal
+
+#re-test varriance 
+#test for equal variance 
+var.test(as.numeric(SSP_df$logX1 [SSP_df$X2 == "a_Suillus"]), 
+         (as.numeric(SSP_df$logX1) [SSP_df$X2 == "b_Other"]))
+#variance not equal
+
+#t-test 
+t.test((as.numeric(SSP_df$logX1) [SSP_df$X2 == "a_Suillus"]), (as.numeric(SSP_df$logX1) [SSP_df$X2 == "b_Other"]), var.equal = FALSE)
+#not different
+
+#re-graph is with log-transformed data 
+med3= mean(log(SSPs_Suillus))
+med4= mean(log(SSPs_Other))
+
+par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0))
+stripchart(SSP_df$logX1 ~ SSP_df$X2,
+           vertical = TRUE,
+           method = "jitter", jitter = 0.2, 
+           pch = 16, 
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
+           cex.axis = 0.7,
+           ylim=c(0,10), 
+           ylab = "log SSPs", 
+           axes = FALSE, 
+           cex = 1.3)
+box()
+axis(2)
+mtext(text = c("Suillus", "Other ECM"),side=1,at=c(1,2),line = 1, font = 3)
+segments(x0 = .7, y0 =  med3, x1 = 1.3, y1=med3, lwd = 2, col = "black" )
+segments(x0 = 1.7, y0 =  med4, x1 = 2.3, y1=med4, lwd = 2, col = "black" )
+mtext(c("a", "a"),side=1,at=c(1,2),line = -8, font = 3)
+
+
+
+####get p val with a randomization test
+#Randomization test to confirm t-test choice
+n=10000
+rand.dist<-rep(NA,n)
+actual_diff_SSPs<- mean(SSPs_Suillus) - mean(SSPs_Other)
+#SSPs_out_of_prot_df is the original data frame, not parced by species
+
+#generate the list of names to be scrambeled 
+group<-c(rep("a_Suillus",nrow(SSPs_out_of_prot_df_Suillus)),rep("b_Other",nrow(SSPs_out_of_prot_df_Other)))
+
+#attach it to the numbers
+df_to_scramble<-data.frame(SSP_df$X1,group)
+attach(df_to_scramble)
+
+for (i in 1:n){
+  sample.group<-sample(group)
+  rand.dist[i]<-mean(as.numeric(SSP_df$X1[sample.group=="a_Suillus"])) -
+    mean(as.numeric(SSP_df$X1[sample.group=="b_Other"]))
+}
+
+p_value<-mean(abs(rand.dist)>=abs(actual_diff_SSPs))
+p_value
+#0.3643
 
 
 
@@ -1622,15 +2082,20 @@ SSSP_df<- data.frame(rbind(SSSPs_Suillus_df, SSSPs_Other_df))
 med3= mean(SSSPs_Suillus)
 med4= mean(SSSPs_Other)
 
+#get standard error
+SSSPs_Suillus_SE<- std(SSSPs_Suillus)  
+SSSPs_Other_SE<- std(SSSPs_Other) 
+
+
 par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0))
 stripchart(SSSP_df$X1 ~ SSSP_df$X2,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#F0502B",  "#F79552"),
-           bg = rep(c("#F0502B", "#F79552")),
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
            cex.axis = 0.7,
-           ylim=c(0,360), 
+           ylim=c(0,460), 
            ylab = "SSSPs", 
            axes = FALSE, 
            cex = 1.3)
@@ -1639,6 +2104,96 @@ axis(2)
 mtext(text = c("Suillus", "Other ECM"),side=1,at=c(1,2),line = 1, font = 3)
 segments(x0 = .7, y0 =  med3, x1 = 1.3, y1=med3, lwd = 2, col = "black" )
 segments(x0 = 1.7, y0 =  med4, x1 = 2.3, y1=med4, lwd = 2, col = "black" )
+mtext(c("a", "b"),side=1,at=c(1,2),line = -12, font = 3)
+
+#stats on the above
+#test normality 
+shapiro.test(as.numeric(SSSP_df$X1) [SSSP_df$X2 == "a_Suillus"])
+#not normal
+
+shapiro.test(as.numeric(SSSP_df$X1) [SSSP_df$X2 == "b_Other"])
+#normal, barely
+
+#test for equal variance 
+var.test(as.numeric(SSSP_df$X1 [SSSP_df$X2 == "a_Suillus"]), 
+         (as.numeric(SSSP_df$X1) [SSSP_df$X2 == "b_Other"]))
+#variance not equal
+
+#t-test 
+t.test((as.numeric(SSSP_df$X1) [SSSP_df$X2 == "a_Suillus"]), (as.numeric(SSSP_df$X1) [SSSP_df$X2 == "b_Other"]), var.equal = FALSE)
+#not different
+
+#transform data to meet normality assumptions
+SSSP_df$logX1<- log(as.numeric(SSSP_df$X1))
+#re-test normality 
+shapiro.test(as.numeric(SSSP_df$logX1) [SSSP_df$X2 == "a_Suillus"])
+#Normal now
+shapiro.test(as.numeric(SSSP_df$logX1) [SSSP_df$X2 == "b_Other"])
+#Still normal
+
+#re-test varriance 
+#test for equal variance 
+var.test(as.numeric(SSSP_df$logX1 [SSSP_df$X2 == "a_Suillus"]), 
+         (as.numeric(SSSP_df$logX1) [SSSP_df$X2 == "b_Other"]))
+#variance not equal
+
+#t-test 
+t.test((as.numeric(SSSP_df$logX1) [SSSP_df$X2 == "a_Suillus"]), (as.numeric(SSSP_df$logX1) [SSSP_df$X2 == "b_Other"]), var.equal = FALSE)
+#not different
+
+#re-graph is with log-transformed data 
+med3= mean(log(SSSPs_Suillus))
+med4= mean(log(SSSPs_Other))
+
+par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0))
+stripchart(SSSP_df$logX1 ~ SSSP_df$X2,
+           vertical = TRUE,
+           method = "jitter", jitter = 0.2, 
+           pch = 16, 
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
+           cex.axis = 0.7,
+           ylim=c(0,10), 
+           ylab = "log SSSPs", 
+           axes = FALSE, 
+           cex = 1.3)
+box()
+axis(2)
+mtext(text = c("Suillus", "Other ECM"),side=1,at=c(1,2),line = 1, font = 3)
+segments(x0 = .7, y0 =  med3, x1 = 1.3, y1=med3, lwd = 2, col = "black" )
+segments(x0 = 1.7, y0 =  med4, x1 = 2.3, y1=med4, lwd = 2, col = "black" )
+mtext(c("a", "b"),side=1,at=c(1,2),line = -8, font = 3)
+
+
+####get p val with a randomization test
+#Randomization test to confirm t-test choice
+n=10000
+rand.dist<-rep(NA,n)
+actual_diff_SSSPs<- mean(SSSPs_Suillus) - mean(SSSPs_Other)
+#SSPs_out_of_prot_df is the original data frame, not parced by species
+
+#generate the list of names to be scrambeled 
+group<-c(rep("a_Suillus",nrow(SSPs_out_of_prot_df_Suillus)),rep("b_Other",nrow(SSPs_out_of_prot_df_Other)))
+
+#attach it to the numbers
+df_to_scramble<-data.frame(SSSP_df$X1,group)
+attach(df_to_scramble)
+
+for (i in 1:n){
+  sample.group<-sample(group)
+  rand.dist[i]<-mean(as.numeric(SSSP_df$X1[sample.group=="a_Suillus"])) -
+    mean(as.numeric(SSSP_df$X1[sample.group=="b_Other"]))
+}
+
+p_value<-mean(abs(rand.dist)>=abs(actual_diff_SSSPs))
+p_value
+
+#How does this compare to the original? 
+t.test((as.numeric(SSSP_df$logX1) [SSSP_df$X2 == "a_Suillus"]), (as.numeric(SSSP_df$logX1) [SSSP_df$X2 == "b_Other"]), var.equal = FALSE)
+#0.06704
+
+
+
 
 ###### form Raw data (no %): Effectors #######
 effector_Suillus<- as.numeric(Suillus_ssps$n_putative_effectors_from_EffectorP)
@@ -1657,8 +2212,8 @@ stripchart(effector_df$X1 ~ effector_df$X2,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#F0502B",  "#F79552"),
-           bg = rep(c("#F0502B", "#F79552")),
+           col = c("#283666", "#B2933B"),
+           bg = rep(c("#283666", "#B2933B")),
            cex.axis = 0.7,
            ylim=c(0,280), 
            ylab = "Effectors", 
@@ -1669,3 +2224,44 @@ axis(2)
 mtext(text = c("Suillus", "Other ECM"),side=1,at=c(1,2),line = 1, font = 3)
 segments(x0 = .7, y0 =  med3, x1 = 1.3, y1=med3, lwd = 2, col = "black" )
 segments(x0 = 1.7, y0 =  med4, x1 = 2.3, y1=med4, lwd = 2, col = "black" )
+mtext(c("a", "a"),side=1,at=c(1,2),line = -8, font = 3)
+
+#stats on the above
+#test normality 
+shapiro.test(as.numeric(effector_df$X1) [effector_df$X2 == "a_Suillus"])
+#normal
+
+shapiro.test(as.numeric(effector_df$X1) [effector_df$X2 == "b_Other"])
+#normal
+
+#test for equal variance 
+var.test(as.numeric(effector_df$X1 [effector_df$X2 == "a_Suillus"]), 
+         (as.numeric(effector_df$X1) [effector_df$X2 == "b_Other"]))
+#variance not equal
+
+#t-test 
+t.test((as.numeric(effector_df$X1) [effector_df$X2 == "a_Suillus"]), (as.numeric(effector_df$X1) [effector_df$X2 == "b_Other"]), var.equal = FALSE)
+#not different
+
+####get p val with a randomization test
+#Randomization test to confirm t-test choice
+n=10000
+rand.dist<-rep(NA,n)
+actual_diff_effectors<- mean(Suillus_ssps$n_putative_effectors_from_EffectorP) - mean(Other_ssps$n_putative_effectors_from_EffectorP)
+
+#generate the list of names to be scrambeled 
+group<-c(rep("a_Suillus",nrow(SSPs_out_of_prot_df_Suillus)),rep("b_Other",nrow(SSPs_out_of_prot_df_Other)))
+
+#attach it to the numbers
+df_to_scramble<-data.frame(effector_df$X1,group)
+attach(df_to_scramble)
+
+for (i in 1:n){
+  sample.group<-sample(group)
+  rand.dist[i]<-mean(as.numeric(effector_df$X1[sample.group=="a_Suillus"])) -
+    mean(as.numeric(effector_df$X1[sample.group=="b_Other"]))
+}
+
+p_value<-mean(abs(rand.dist)>=abs(actual_diff_effectors))
+p_value
+
