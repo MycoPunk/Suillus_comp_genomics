@@ -1,27 +1,26 @@
+
 #load libraries
 library("seqinr")
 library("data.table")
 library("stringr")
 library("car")
+library("FSA")
+library("rcompanion")
 library("coin")
 library("multcompView")
 library("multcomp")
-library("mvtnorm")
 
-#load coin
+#to load coin
 #if(!require(coin)){install.packages("coin")}
 #if(!require(FSA)){install.packages("FSA")}
 #if(!require(rcompanion)){install.packages("rcompanion")}
 #if(!require(multcompView)){install.packages("multcompView")}
 
-#install.packages("mvtnorm", repos="http://R-Forge.R-project.org")
-
-options(stringsAsFactors = TRUE)
+options(stringsAsFactors = FALSE)
 setwd("~/Desktop/Project_Suillus_comp_genomics/R")
 
 #read it back in 
 SSPs_coded_within_Suillus<- read.csv("SSPs_coded_within_Suillus.csv")
-
 
 #split the two data categories for the three groups and get stats for each 
 Red_df<- SSPs_coded_within_Suillus[SSPs_coded_within_Suillus$group=="a_Red",]
@@ -77,7 +76,10 @@ par(mfrow = c(1,1)) #back to one image per page
 #Run anova
 summary(aov(genome_size_model3))
 
+
 ####get p val with a randomization test
+#run permutation test with coin for three factors
+
 
 #make df
 r_GS<- data.frame(Red_df$genome_size, rep("Red"))
@@ -88,10 +90,15 @@ l_GS<- data.frame(Larch_df$genome_size, rep("Larch"))
 colnames(l_GS)<- c("GS", "group")
 #bind them
 GS_df<- rbind(r_GS, w_GS, l_GS)
+#set factors
+#set order of boxes
+GS_df$group <- factor(GS_df$group,levels = c('Red','White', 'Larch'),ordered = TRUE)
 
-#run permutation test with coin for three factors
+#run independence test (this is like an ANOVA)
 independence_test(GS ~ group, 
                   data = GS_df)
+
+
 
 ####proteins
 #means
@@ -140,21 +147,25 @@ par(mfrow = c(1,1)) #back to one image per page
 summary(aov(prot_model))
 #not significant
 
-
-##permutation test
 #make df
-r_prot<- data.frame(Red_df$n_proteins_from_gene_cat, rep("Red"))
-colnames(r_prot)<- c("prot", "group")
-w_prot<- data.frame(White_df$n_proteins_from_gene_cat, rep("White"))
-colnames(w_prot)<- c("prot", "group")
-l_prot<- data.frame(Larch_df$n_proteins_from_gene_cat, rep("Larch"))
-colnames(l_prot)<- c("prot", "group")
+r_GS<- data.frame(Red_df$n_proteins_from_gene_cat, rep("Red"))
+colnames(r_GS)<- c("GS", "group")
+w_GS<- data.frame(White_df$n_proteins_from_gene_cat, rep("White"))
+colnames(w_GS)<- c("GS", "group")
+l_GS<- data.frame(Larch_df$n_proteins_from_gene_cat, rep("Larch"))
+colnames(l_GS)<- c("GS", "group")
 #bind them
-prot_df<- rbind(r_prot, w_prot, l_prot)
+GS_df<- rbind(r_GS, w_GS, l_GS)
+#set factors
+#set order of boxes
+GS_df$group <- factor(GS_df$group,levels = c('Red','White', 'Larch'),ordered = TRUE)
 
-#run permutation test with coin for three factors
-independence_test(prot ~ group, 
-                  data = prot_df)
+#run independence test (this is like an ANOVA)
+independence_test(GS ~ group, 
+                  data = GS_df)
+
+
+
 
 ####SSPs
 #means
@@ -196,20 +207,27 @@ par(mfrow = c(1,1)) #back to one image per page
 summary(aov(ssp_model2))
 #not significant
 
-##permutation test
-#make df
-r_ssp<- data.frame(Red_df$n_SSPs_signalP_TMHMM_lt_300aa, rep("Red"))
-colnames(r_ssp)<- c("ssp", "group")
-w_ssp<- data.frame(White_df$n_SSPs_signalP_TMHMM_lt_300aa, rep("White"))
-colnames(w_ssp)<- c("ssp", "group")
-l_ssp<- data.frame(Larch_df$n_SSPs_signalP_TMHMM_lt_300aa, rep("Larch"))
-colnames(l_ssp)<- c("ssp", "group")
-#bind them
-ssp_df<- rbind(r_ssp, w_ssp, l_ssp)
 
-#run permutation test with coin for three factors
-independence_test(ssp ~ group, 
-                  data = ssp_df)
+#make df
+r_GS<- data.frame(Red_df$n_SSPs_signalP_TMHMM_lt_300aa, rep("Red"))
+colnames(r_GS)<- c("GS", "group")
+w_GS<- data.frame(White_df$n_SSPs_signalP_TMHMM_lt_300aa, rep("White"))
+colnames(w_GS)<- c("GS", "group")
+l_GS<- data.frame(Larch_df$n_SSPs_signalP_TMHMM_lt_300aa, rep("Larch"))
+colnames(l_GS)<- c("GS", "group")
+#bind them
+GS_df<- rbind(r_GS, w_GS, l_GS)
+#set factors
+#set order of boxes
+GS_df$group <- factor(GS_df$group,levels = c('Red','White', 'Larch'),ordered = TRUE)
+
+#run independence test (this is like an ANOVA)
+independence_test(GS ~ group, 
+                  data = GS_df)
+
+
+
+
 
 ####SSSPs
 #means
@@ -256,22 +274,47 @@ summary(aov(sssp_model2))
 #what's different?
 sssp_aov<- aov(sssp_model2)
 TukeyHSD(sssp_aov)
-#red white, and red and larch are sig. different 
+#red and larch are sig. different 
 
-##permutation test
-#make df
-r_sssp<- data.frame(Red_df$n_SSSPs, rep("Red"))
-colnames(r_sssp)<- c("sssp", "group")
-w_sssp<- data.frame(White_df$n_SSSPs, rep("White"))
-colnames(w_sssp)<- c("sssp", "group")
-l_sssp<- data.frame(Larch_df$n_SSSPs, rep("Larch"))
-colnames(l_sssp)<- c("sssp", "group")
+#randomization test make df
+r_GS<- data.frame(Red_df$n_SSSPs, rep("Red"))
+colnames(r_GS)<- c("GS", "group")
+w_GS<- data.frame(White_df$n_SSSPs, rep("White"))
+colnames(w_GS)<- c("GS", "group")
+l_GS<- data.frame(Larch_df$n_SSSPs, rep("Larch"))
+colnames(l_GS)<- c("GS", "group")
 #bind them
-sssp_df<- rbind(r_sssp, w_sssp, l_sssp)
+GS_df<- rbind(r_GS, w_GS, l_GS)
+#set factors
+#set order of boxes
+GS_df$group <- factor(GS_df$group,levels = c('Red','White', 'Larch'),ordered = TRUE)
 
-#run permutation test with coin for three factors
-independence_test(sssp ~ group, 
-                  data = sssp_df)
+#run independence test (this is like an ANOVA)
+independence_test(GS ~ group, 
+                  data = GS_df)
+#significant!
+
+#run tukey equivelent to see whats significant
+#take a look at the medians 
+boxplot(GS ~ group,
+        data = GS_df)
+
+#order them by median (highest to lowest)
+GS_df$group = factor(GS_df$group , 
+                     levels = c("Larch", "White", "Red"))
+
+
+headtail(GS_df)
+
+### Pairwise tests
+
+
+PT = pairwisePermutationTest(GS ~ group,
+                             data = GS_df,
+                             method="fdr")
+
+PT
+
 
 ####Effectors
 #means
@@ -315,20 +358,26 @@ par(mfrow = c(1,1)) #back to one image per page
 summary(aov(effector_model2))
 #not significant
 
-##permutation test
-#make df
-r_eff<- data.frame(Red_df$n_effectors_from_EffectorP, rep("Red"))
-colnames(r_eff)<- c("eff", "group")
-w_eff<- data.frame(White_df$n_effectors_from_EffectorP, rep("White"))
-colnames(w_eff)<- c("eff", "group")
-l_eff<- data.frame(Larch_df$n_effectors_from_EffectorP, rep("Larch"))
-colnames(l_eff)<- c("eff", "group")
+#randomization test make df
+r_GS<- data.frame(Red_df$n_effectors_from_EffectorP, rep("Red"))
+colnames(r_GS)<- c("GS", "group")
+w_GS<- data.frame(White_df$n_effectors_from_EffectorP, rep("White"))
+colnames(w_GS)<- c("GS", "group")
+l_GS<- data.frame(Larch_df$n_effectors_from_EffectorP, rep("Larch"))
+colnames(l_GS)<- c("GS", "group")
 #bind them
-eff_df<- rbind(r_eff, w_eff, l_eff)
+GS_df<- rbind(r_GS, w_GS, l_GS)
+#set factors
+#set order of boxes
+GS_df$group <- factor(GS_df$group,levels = c('Red','White', 'Larch'),ordered = TRUE)
 
-#run permutation test with coin for three factors
-independence_test(eff ~ group, 
-                  data = eff_df)
+#run independence test (this is like an ANOVA)
+independence_test(GS ~ group, 
+                  data = GS_df)
+
+#not significant
+
+
 
 
 
@@ -377,20 +426,48 @@ par(mfrow = c(1,1)) #back to one image per page
 summary(aov(SSP_per_all_prot_model2))
 #not significant
 
-##permutation test
-#make df
-r_eff<- data.frame(Red_df$percent_SSPs_out_of_total_genes, rep("Red"))
-colnames(r_eff)<- c("eff", "group")
-w_eff<- data.frame(White_df$percent_SSPs_out_of_total_genes, rep("White"))
-colnames(w_eff)<- c("eff", "group")
-l_eff<- data.frame(Larch_df$percent_SSPs_out_of_total_genes, rep("Larch"))
-colnames(l_eff)<- c("eff", "group")
+#randomization test make df
+r_GS<- data.frame(Red_df$percent_SSPs_out_of_total_genes, rep("Red"))
+colnames(r_GS)<- c("GS", "group")
+w_GS<- data.frame(White_df$percent_SSPs_out_of_total_genes, rep("White"))
+colnames(w_GS)<- c("GS", "group")
+l_GS<- data.frame(Larch_df$percent_SSPs_out_of_total_genes, rep("Larch"))
+colnames(l_GS)<- c("GS", "group")
 #bind them
-eff_df<- rbind(r_eff, w_eff, l_eff)
+GS_df<- rbind(r_GS, w_GS, l_GS)
+#set factors
+#set order of boxes
+GS_df$group <- factor(GS_df$group,levels = c('Red','White', 'Larch'),ordered = TRUE)
 
-#run permutation test with coin for three factors
-independence_test(eff ~ group, 
-                  data = eff_df)
+#run independence test (this is like an ANOVA)
+independence_test(GS ~ group, 
+                  data = GS_df)
+#marganaly significant 
+
+#whats different?
+#run tukey equivelent to see whats significant
+#take a look at the medians 
+boxplot(GS ~ group,
+        data = GS_df)
+
+#order them by median (highest to lowest)
+GS_df$group = factor(GS_df$group , 
+                     levels = c("Larch", "White", "Red"))
+
+
+headtail(GS_df)
+
+### Pairwise tests
+PT = pairwisePermutationTest(GS ~ group,
+                             data = GS_df,
+                             method="fdr")
+
+PT
+cldList(comparison = PT$Comparison,
+        p.value    = PT$p.adjust,
+        threshold  = 0.05)
+#not significant after fdr correction
+
 
 
 #%SSSPs out of SSPs.
@@ -428,20 +505,48 @@ sssp_aov2<- aov(SSSP_per_SSP_model)
 TukeyHSD(sssp_aov2)
 #red and larch are sig. different 
 
-##permutation test
-#make df
-r_eff<- data.frame(Red_df$percent_SSSPs_out_of_SSPs, rep("Red"))
-colnames(r_eff)<- c("eff", "group")
-w_eff<- data.frame(White_df$percent_SSSPs_out_of_SSPs, rep("White"))
-colnames(w_eff)<- c("eff", "group")
-l_eff<- data.frame(Larch_df$percent_SSSPs_out_of_SSPs, rep("Larch"))
-colnames(l_eff)<- c("eff", "group")
+#randomization test make df
+r_GS<- data.frame(Red_df$percent_SSSPs_out_of_SSPs, rep("Red"))
+colnames(r_GS)<- c("GS", "group")
+w_GS<- data.frame(White_df$percent_SSSPs_out_of_SSPs, rep("White"))
+colnames(w_GS)<- c("GS", "group")
+l_GS<- data.frame(Larch_df$percent_SSSPs_out_of_SSPs, rep("Larch"))
+colnames(l_GS)<- c("GS", "group")
 #bind them
-eff_df<- rbind(r_eff, w_eff, l_eff)
+GS_df<- rbind(r_GS, w_GS, l_GS)
+#set factors
+#set order of boxes
+GS_df$group <- factor(GS_df$group,levels = c('Red','White', 'Larch'),ordered = TRUE)
 
-#run permutation test with coin for three factors
-independence_test(eff ~ group, 
-                  data = eff_df)
+#run independence test (this is like an ANOVA)
+independence_test(GS ~ group, 
+                  data = GS_df)
+
+#significant!
+
+
+#run tukey equivelent to see whats significant
+#take a look at the medians 
+boxplot(GS ~ group,
+        data = GS_df)
+
+#order them by median (highest to lowest)
+GS_df$group = factor(GS_df$group , 
+                     levels = c("Larch", "White", "Red"))
+
+
+headtail(GS_df)
+
+### Pairwise tests
+
+
+PT = pairwisePermutationTest(GS ~ group,
+                             data = GS_df,
+                             method="fdr")
+
+PT
+
+
 
 
 #Effectors out of SSPs
@@ -486,30 +591,26 @@ par(mfrow = c(1,1)) #back to one image per page
 summary(aov(effectors_out_of_SSP_model2))
 #not significant
 
-
-##permutation test
-#make df
-r_eff<- data.frame(Red_df$percent_effectors_out_of_SSPs, rep("Red"))
-colnames(r_eff)<- c("eff", "group")
-w_eff<- data.frame(White_df$percent_effectors_out_of_SSPs, rep("White"))
-colnames(w_eff)<- c("eff", "group")
-l_eff<- data.frame(Larch_df$percent_effectors_out_of_SSPs, rep("Larch"))
-colnames(l_eff)<- c("eff", "group")
+#randomization test make df
+r_GS<- data.frame(Red_df$percent_effectors_out_of_SSPs, rep("Red"))
+colnames(r_GS)<- c("GS", "group")
+w_GS<- data.frame(White_df$percent_effectors_out_of_SSPs, rep("White"))
+colnames(w_GS)<- c("GS", "group")
+l_GS<- data.frame(Larch_df$percent_effectors_out_of_SSPs, rep("Larch"))
+colnames(l_GS)<- c("GS", "group")
 #bind them
-eff_df<- rbind(r_eff, w_eff, l_eff)
+GS_df<- rbind(r_GS, w_GS, l_GS)
+#set factors
+#set order of boxes
+GS_df$group <- factor(GS_df$group,levels = c('Red','White', 'Larch'),ordered = TRUE)
 
-#run permutation test with coin for three factors
-independence_test(eff ~ group, 
-                  data = eff_df)
-
+#run independence test (this is like an ANOVA)
+independence_test(GS ~ group, 
+                  data = GS_df)
 
 
 ######## plots start here ########
-#first remove other host associations from the df
-groups<- c("a_Red", "b_White", "c_Larch")
-all_df<- droplevels(all_df[, all_df$group %in% groups])
-
-
+#plot of n_SSPs
 
 #means from transformaton 
 Red_df_new<- all_df[all_df$group=="a_Red",]
@@ -520,9 +621,7 @@ M_red<- mean(Red_df_new$n_SSPs_signalP_TMHMM_lt_300aa_inv_square)
 M_white<- mean(White_df_new$n_SSPs_signalP_TMHMM_lt_300aa_inv_square)
 M_larch<- mean(Larch_df_new$n_SSPs_signalP_TMHMM_lt_300aa_inv_square)
 
-
 par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0))
-
 stripchart(all_df$n_SSPs_signalP_TMHMM_lt_300aa_inv_square ~ all_df$group,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
@@ -568,7 +667,7 @@ mtext(text = c("Red", "White", "Larch"),side=1,at=c(1,2,3),line = 1, font = 1)
 segments(x0 = .7, y0 =  M_red, x1 = 1.3, y1= M_red, lwd = 2, col = "black" )
 segments(x0 = 1.7, y0 =  M_white, x1 = 2.3, y1= M_white, lwd = 2, col = "black" )
 segments(x0 = 2.7, y0 =  M_larch, x1 = 3.3, y1= M_larch, lwd = 2, col = "black" )
-mtext(c("a", "ab", "b"),side=1,at=c(1,2,3),line = -8, font = 1)
+mtext(c("a", "b", "b"),side=1,at=c(1,2,3),line = -8, font = 1)
 
 
 ### plot n effectors
@@ -649,7 +748,7 @@ mtext(text = c("Red", "White", "Larch"),side=1,at=c(1,2,3),line = 1, font = 1)
 segments(x0 = .7, y0 =  M_red, x1 = 1.3, y1= M_red, lwd = 2, col = "black" )
 segments(x0 = 1.7, y0 =  M_white, x1 = 2.3, y1= M_white, lwd = 2, col = "black" )
 segments(x0 = 2.7, y0 =  M_larch, x1 = 3.3, y1= M_larch, lwd = 2, col = "black" )
-mtext(c("a", "ab", "b"),side=1,at=c(1,2,3),line = -8, font = 1)
+mtext(c("a", "b", "b"),side=1,at=c(1,2,3),line = -8, font = 1)
 
 
 ### plot % Effectors out of SSPs
