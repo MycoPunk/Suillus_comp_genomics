@@ -1797,7 +1797,7 @@ p_value<-mean(abs(rand.dist3)>=abs(actual_diff_SSSPs_out_of_SSPs))
 mean(abs(rand.dist3))
 abs(actual_diff_SSSPs_out_of_SSPs)
 p_value
-#1e-04
+#<0.0001
 
 #how does it compare to the original?
 t_test_og<- t.test((as.numeric(SSPs_out_of_SSSPs_df$`%`) [SSPs_out_of_SSSPs_df$group == "a_Suillus"]), (as.numeric(SSPs_out_of_SSSPs_df$`%`) [SSPs_out_of_SSSPs_df$group == "b_Other"]), var.equal = FALSE)
@@ -2066,7 +2066,7 @@ for (i in 1:n){
 
 p_value<-mean(abs(rand.dist)>=abs(actual_diff_SSPs))
 p_value
-#0.3643
+#0.3601
 
 
 
@@ -2118,10 +2118,6 @@ shapiro.test(as.numeric(SSSP_df$X1) [SSSP_df$X2 == "b_Other"])
 var.test(as.numeric(SSSP_df$X1 [SSSP_df$X2 == "a_Suillus"]), 
          (as.numeric(SSSP_df$X1) [SSSP_df$X2 == "b_Other"]))
 #variance not equal
-
-#t-test 
-t.test((as.numeric(SSSP_df$X1) [SSSP_df$X2 == "a_Suillus"]), (as.numeric(SSSP_df$X1) [SSSP_df$X2 == "b_Other"]), var.equal = FALSE)
-#not different
 
 #transform data to meet normality assumptions
 SSSP_df$logX1<- log(as.numeric(SSSP_df$X1))
