@@ -166,6 +166,12 @@ table(input_df3$Class2)
 #order for rendering
 input_df3$Group <- factor(input_df3$Group, c("S", "O"))
 
+#get number of unknowns
+unknowns<- input_df3[input_df3$Class2 == "Unknown",]
+sum(unknowns$Count)
+#get number of PTH11-like
+PTH11<- input_df3[input_df3$Class2 == "11",]
+sum(PTH11$Count)
 
 ##make grouped strip chart
 p<- ggplot(input_df3, aes(x=Class2, y=Count, fill=Group, color = Group)) + 
@@ -322,6 +328,13 @@ table(input_df3_S$Class2)
 #order for rendering
 input_df3_S$host_group <- factor(input_df3_S$host_group, c("R", "W", "L"))
 
+#get number of unknowns
+unknowns2<- input_df3_S[input_df3_S$Class2 == "Unknown",]
+sum(unknowns2$Count)
+#get number of PTH11-like
+PTH11<- input_df3_S[input_df3_S$Class2 == "11",]
+sum(PTH11$Count)
+
 ##make grouped strip chart
 p<- ggplot(input_df3_S, aes(x=Class2, y=Count, fill=host_group, color = host_group)) + 
   geom_point(position=position_jitterdodge(jitter.width = .15), aes(shape=host_group, color=host_group), size=2, alpha=0.5)+
@@ -377,6 +390,8 @@ larch_sd2<- sum(as.numeric(larch_sd) / length(larch_sd))
 S_GPCRs$sd<- rbind(red_sd2, white_sd2, larch_sd2)
 
 #stats
+#stats
+####
 split_dfs_Red_ul<- lapply(split_dfs_red, function(x) unlist(x$Count))
 split_dfs_Red_ul2<- as.data.frame(unlist(split_dfs_Red_ul))
 colnames(split_dfs_Red_ul2)<- "Mean"
@@ -393,15 +408,18 @@ split_dfs_Larch_ul2<- as.data.frame(unlist(split_dfs_Larch_ul))
 colnames(split_dfs_Larch_ul2)<- "Mean"
 split_dfs_Larch_ul2$treatment = "L"
 
-#bind
-all_df2<- as.data.frame(rbind(split_dfs_Red_ul2, split_dfs_White_ul2, split_dfs_Larch_ul2))
 
-#set factors
+all_df2<- as.data.frame(rbind(split_dfs_Red_ul2, split_dfs_White_ul2, split_dfs_Larch_ul2))
+all_df2$
+#anova
+Anova(Count ~treatment, data = all_sd2)
+
 all_df2$treatment <- factor(all_df2$treatment ,levels = c('R','W', 'L'),ordered = TRUE)
 
 #run independence test (this is like an ANOVA)
 independence_test(Mean ~ treatment, 
                   data = all_df2)
+
 
 #plot
 p<-ggplot(S_GPCRs, aes(x=Group, y=Count, fill=Group)) +
@@ -412,3 +430,6 @@ p + scale_fill_manual(values=c("#5676A1", "#B09136", "#B36757")) +
   labs(y = "ave. n GPCRs") +
   geom_errorbar(aes(ymin=Count-sd, ymax=Count+sd), width=.2,
                 position=position_dodge(.9)) 
+
+
+
