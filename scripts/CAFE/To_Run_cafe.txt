@@ -1,0 +1,124 @@
+#to run CAFE: you need 1) an altimetric tree, the number of sites of sites used to construct the tree, and a time calibration with an out group. 
+
+#to get the tree, run Phyling on all of the species (here 23 Suillus and 23 Other ECM fungi). 
+#to get the number of sites (you want the "Alignment length" here: 
+module load hmmer
+esl-alistat Suillus.46_taxa.JGI_1086.aa.fasaln 
+@Alignment length:    173079
+
+#to get the time calibration to scale branch lengths to time units use: http://www.timetree.org/ 
+#evo divergence time of Suillus and Rhizopogon is aprox. 27.7 MYA
+
+#to make tree altimetric, we use a program called r8s.  
+#the r8s script is in:
+~/bigdata/Suillus_comp_genomics/cafe_tutorial/python_scripts/cafetutorial_prep_r8s.py
+
+cd ~/bigdata/Suillus_comp_genomics/cafe_test
+#I created pseudo links to the tree file and the .py scrip in this folder.
+ln -s ~/bigdata/Suillus_comp_genomics/Phylogeny/phylo/Suillus.46_taxa.JGI_1086.ft_lg.tre
+
+#I then first rooted each tree using figtree and re-imported them  (at some point go back and root the tree using r8s? to streamline the pipline) 
+#'Suillus' set was rooted with Rhitru1
+#'All' set was rooted with Cananz1
+
+#run r8s (NEW_Suillus_tre.txt)
+
+module load r8s
+
+python cafetutorial_prep_r8s.py -i NEW_Suillus_tre.txt -o r8s_NEW_Suillus_tre.txt -s 173079 -p 'Suiamp1,Rhitru1' -c '27.7'
+#python cafetutorial_prep_r8s.py -i Rooted_all_tree.tre -o r8s_ctl_file_All.txt -s 172350 -p 'Suiamp1,Rhitru1' -c '27.7'
+
+#run r8s
+r8s -b -f r8s_NEW_Suillus_tre.txt > r8s_NEW_tmp_Suillus_tre.txt
+
+#parse the output
+tail -n 1 r8s_NEW_tmp_Suillus_tre.txt | cut -c 16- > Suillus_23_ultrametric.txt
+
+#to get the lambda tree run this pear one-liner that Jason wrote: echo "<tree>"| perl -p -e 's/\):\d+\.\d+/)1/g; s/\w+\d+:\d+.\d+/1/g'
+
+#NEW
+echo "(((((((((((((((((((Suivar1:0.093264,Suitom1:0.093264):1.605533,(Suihi1:1.299561,Suifus1:1.299561):0.399235):0.536342,Suiplo1:2.235138):0.007457,Suidis1:2.242595):6.030181,Suibov1:8.272775):0.036616,(((((Suisubl1:1.461864,Suisu1:1.461864):0.002186,Suiame1:1.464050):0.012195,Suisub1:1.476245):4.116424,Suicot1:5.592670):2.680130,(Suipic1:3.705870,Suidec1:3.705870):4.566929):0.036592):3.611000,(Suigr1:5.507702,Suipla1:5.507702):6.412690):1.347039,((Suilu4:4.429387,Suiocc1:4.429387):0.018157,Suibr2:4.447544):8.819887):3.986089,Suilak1:17.253520):3.605055,Suicli1:20.858575):0.074222,(Suipal1:7.361203,Suiamp1:7.361203):13.571594):6.767204,((((Rhivi1:3.221680,Rhives1:3.221680):7.600602,Rhivul1:10.822282):4.909081,Rhisa1:15.731362):8.510182,Rhitru1:24.241545):3.458455)mp1ru1:2.588593,(((Pismi1:8.745708,Pisti1:8.745708):6.632335,Sclci1:15.378043):3.019515,(Paxin1:10.732271,Gyrli1:10.732271):7.665287):11.891036):0.070652,Pilcr1:30.359245):0.655007,(((Lacam2:10.508540,Lacbi2:10.508540):5.150928,Hebcy2:15.659468):8.448606,Amamu1:24.108074):6.906178):1.583445,((Theter1:14.664541,Thega1:14.664541):15.088243,(Ruscom1:27.268670,Rusbre1:27.268670):2.484114):2.844913):0.735132,(Gaumor1:20.664985,Hyssto1:20.664985):12.667844):0.354163,Hydru2:33.686991):1.830738,Cananz1:35.517729);"| perl -p -e 's/\):\d+\.\d+/)1/g; s/\w+\d+:\d+.\d+/1/g'
+#(((((((((((((((((((1,1)1,(1,1)1)1,1)1,1)1,1)1,(((((1,1)1,1)1,1)1,1)1,(1,1)1)1)1,(1,1)1)1,((1,1)1,1)1)1,1)1,1)1,(1,1)1)1,((((1,1)1,1)1,1)1,1)1)1,(((1,1)1,1)1,(1,1)1)1)1,1)1,(((1,1)1,1)1,1)1)1,((1,1)1,(1,1)1)1)1,(1,1)1)1,1)1,1);
+
+#note there was an error in the file with nameing conventions for Gaumor1 which wanted to be Gaumor1_1
+I replaced it with 
+sed 's/Gaumor1_1/Gaumor1/g' All_MCL_Fams.I15.filtered.tab > All_MCL_Fams.I15.filtered.fixed.tab
+#note- I replaced this in the tree as well 
+#note there was also an error when geneting the summary report files. This was because there was an annotation in one of the nodes of the ALL tree (you could see whis when opening it in figTree and adding the labels filter on node, I removed this and re ran CAFE. 
+
+
+#run python script to summarize output files 
+python cafe_tutorial/python_scripts/cafetutorial_report_analysis.py -i NEWcafe_report_mcl_ALL.txt.cafe -o summary_NEW_r0 -r 0
+
+##map the summary onto a tree, call head on the reports<>.cafe file to fill in the following
+#rapid
+python cafe_tutorial/python_scripts/cafetutorial_draw_tree.py -i summary_NEW_r0_node.txt -t '(((((((((((((((((((Suivar1:0.093264,Suitom1:0.093264):1.605533,(Suihi1:1.299561,Suifus1:1.299561):0.399235):0.536342,Suiplo1:2.235138):0.007457,Suidis1:2.242595):6.030181,Suibov1:8.272775):0.036616,(((((Suisubl1:1.461864,Suisu1:1.461864):0.002186,Suiame1:1.464050):0.012195,Suisub1:1.476245):4.116424,Suicot1:5.592670):2.680130,(Suipic1:3.705870,Suidec1:3.705870):4.566929):0.036592):3.611000,(Suigr1:5.507702,Suipla1:5.507702):6.412690):1.347039,((Suilu4:4.429387,Suiocc1:4.429387):0.018157,Suibr2:4.447544):8.819887):3.986089,Suilak1:17.253520):3.605055,Suicli1:20.858575):0.074222,(Suipal1:7.361203,Suiamp1:7.361203):13.571594):6.767204,((((Rhivi1:3.221680,Rhives1:3.221680):7.600602,Rhivul1:10.822282):4.909081,Rhisa1:15.731362):8.510182,Rhitru1:24.241545):3.458455)mp1ru1:2.588593,(((Pismi1:8.745708,Pisti1:8.745708):6.632335,Sclci1:15.378043):3.019515,(Paxin1:10.732271,Gyrli1:10.732271):7.665287):11.891036):0.070652,Pilcr1:30.359245):0.655007,(((Lacam2:10.508540,Lacbi2:10.508540):5.150928,Hebcy2:15.659468):8.448606,Amamu1:24.108074):6.906178):1.583445,((Theter1:14.664541,Thega1:14.664541):15.088243,(Ruscom1:27.268670,Rusbre1:27.268670):2.484114):2.844913):0.735132,(Gaumor1:20.664985,Hyssto1:20.664985):12.667844):0.354163,Hydru2:33.686991):1.830738,Cananz1:35.517729)' -d '(((((((((((((((((((Suivar1<0>,Suitom1<2>)<1>,(Suihi1<4>,Suifus1<6>)<5>)<3>,Suiplo1<8>)<7>,Suidis1<10>)<9>,Suibov1<12>)<11>,(((((Suisubl1<14>,Suisu1<16>)<15>,Suiame1<18>)<17>,Suisub1<20>)<19>,Suicot1<22>)<21>,(Suipic1<24>,Suidec1<26>)<25>)<23>)<13>,(Suigr1<28>,Suipla1<30>)<29>)<27>,((Suilu4<32>,Suiocc1<34>)<33>,Suibr2<36>)<35>)<31>,Suilak1<38>)<37>,Suicli1<40>)<39>,(Suipal1<42>,Suiamp1<44>)<43>)<41>,((((Rhivi1<46>,Rhives1<48>)<47>,Rhivul1<50>)<49>,Rhisa1<52>)<51>,Rhitru1<54>)<53>)<45>,(((Pismi1<56>,Pisti1<58>)<57>,Sclci1<60>)<59>,(Paxin1<62>,Gyrli1<64>)<63>)<61>)<55>,Pilcr1<66>)<65>,(((Lacam2<68>,Lacbi2<70>)<69>,Hebcy2<72>)<71>,Amamu1<74>)<73>)<67>,((Theter1<76>,Thega1<78>)<77>,(Ruscom1<80>,Rusbre1<82>)<81>)<79>)<75>,(Gaumor1<84>,Hyssto1<86>)<85>)<83>,Hydru2<88>)<87>,Cananz1<90>)<89>' -o NEW_summary_tree_rapid.png -y Rapid
+#expansions
+python cafe_tutorial/python_scripts/cafetutorial_draw_tree.py -i summary_NEW_r0_node.txt -t '(((((((((((((((((((Suivar1:0.093264,Suitom1:0.093264):1.605533,(Suihi1:1.299561,Suifus1:1.299561):0.399235):0.536342,Suiplo1:2.235138):0.007457,Suidis1:2.242595):6.030181,Suibov1:8.272775):0.036616,(((((Suisubl1:1.461864,Suisu1:1.461864):0.002186,Suiame1:1.464050):0.012195,Suisub1:1.476245):4.116424,Suicot1:5.592670):2.680130,(Suipic1:3.705870,Suidec1:3.705870):4.566929):0.036592):3.611000,(Suigr1:5.507702,Suipla1:5.507702):6.412690):1.347039,((Suilu4:4.429387,Suiocc1:4.429387):0.018157,Suibr2:4.447544):8.819887):3.986089,Suilak1:17.253520):3.605055,Suicli1:20.858575):0.074222,(Suipal1:7.361203,Suiamp1:7.361203):13.571594):6.767204,((((Rhivi1:3.221680,Rhives1:3.221680):7.600602,Rhivul1:10.822282):4.909081,Rhisa1:15.731362):8.510182,Rhitru1:24.241545):3.458455)mp1ru1:2.588593,(((Pismi1:8.745708,Pisti1:8.745708):6.632335,Sclci1:15.378043):3.019515,(Paxin1:10.732271,Gyrli1:10.732271):7.665287):11.891036):0.070652,Pilcr1:30.359245):0.655007,(((Lacam2:10.508540,Lacbi2:10.508540):5.150928,Hebcy2:15.659468):8.448606,Amamu1:24.108074):6.906178):1.583445,((Theter1:14.664541,Thega1:14.664541):15.088243,(Ruscom1:27.268670,Rusbre1:27.268670):2.484114):2.844913):0.735132,(Gaumor1:20.664985,Hyssto1:20.664985):12.667844):0.354163,Hydru2:33.686991):1.830738,Cananz1:35.517729)' -d '(((((((((((((((((((Suivar1<0>,Suitom1<2>)<1>,(Suihi1<4>,Suifus1<6>)<5>)<3>,Suiplo1<8>)<7>,Suidis1<10>)<9>,Suibov1<12>)<11>,(((((Suisubl1<14>,Suisu1<16>)<15>,Suiame1<18>)<17>,Suisub1<20>)<19>,Suicot1<22>)<21>,(Suipic1<24>,Suidec1<26>)<25>)<23>)<13>,(Suigr1<28>,Suipla1<30>)<29>)<27>,((Suilu4<32>,Suiocc1<34>)<33>,Suibr2<36>)<35>)<31>,Suilak1<38>)<37>,Suicli1<40>)<39>,(Suipal1<42>,Suiamp1<44>)<43>)<41>,((((Rhivi1<46>,Rhives1<48>)<47>,Rhivul1<50>)<49>,Rhisa1<52>)<51>,Rhitru1<54>)<53>)<45>,(((Pismi1<56>,Pisti1<58>)<57>,Sclci1<60>)<59>,(Paxin1<62>,Gyrli1<64>)<63>)<61>)<55>,Pilcr1<66>)<65>,(((Lacam2<68>,Lacbi2<70>)<69>,Hebcy2<72>)<71>,Amamu1<74>)<73>)<67>,((Theter1<76>,Thega1<78>)<77>,(Ruscom1<80>,Rusbre1<82>)<81>)<79>)<75>,(Gaumor1<84>,Hyssto1<86>)<85>)<83>,Hydru2<88>)<87>,Cananz1<90>)<89>' -o NEW_summary_tree_expansions.png -y Expansions
+#contractions
+python cafe_tutorial/python_scripts/cafetutorial_draw_tree.py -i summary_NEW_r0_node.txt -t '(((((((((((((((((((Suivar1:0.093264,Suitom1:0.093264):1.605533,(Suihi1:1.299561,Suifus1:1.299561):0.399235):0.536342,Suiplo1:2.235138):0.007457,Suidis1:2.242595):6.030181,Suibov1:8.272775):0.036616,(((((Suisubl1:1.461864,Suisu1:1.461864):0.002186,Suiame1:1.464050):0.012195,Suisub1:1.476245):4.116424,Suicot1:5.592670):2.680130,(Suipic1:3.705870,Suidec1:3.705870):4.566929):0.036592):3.611000,(Suigr1:5.507702,Suipla1:5.507702):6.412690):1.347039,((Suilu4:4.429387,Suiocc1:4.429387):0.018157,Suibr2:4.447544):8.819887):3.986089,Suilak1:17.253520):3.605055,Suicli1:20.858575):0.074222,(Suipal1:7.361203,Suiamp1:7.361203):13.571594):6.767204,((((Rhivi1:3.221680,Rhives1:3.221680):7.600602,Rhivul1:10.822282):4.909081,Rhisa1:15.731362):8.510182,Rhitru1:24.241545):3.458455)mp1ru1:2.588593,(((Pismi1:8.745708,Pisti1:8.745708):6.632335,Sclci1:15.378043):3.019515,(Paxin1:10.732271,Gyrli1:10.732271):7.665287):11.891036):0.070652,Pilcr1:30.359245):0.655007,(((Lacam2:10.508540,Lacbi2:10.508540):5.150928,Hebcy2:15.659468):8.448606,Amamu1:24.108074):6.906178):1.583445,((Theter1:14.664541,Thega1:14.664541):15.088243,(Ruscom1:27.268670,Rusbre1:27.268670):2.484114):2.844913):0.735132,(Gaumor1:20.664985,Hyssto1:20.664985):12.667844):0.354163,Hydru2:33.686991):1.830738,Cananz1:35.517729)' -d '(((((((((((((((((((Suivar1<0>,Suitom1<2>)<1>,(Suihi1<4>,Suifus1<6>)<5>)<3>,Suiplo1<8>)<7>,Suidis1<10>)<9>,Suibov1<12>)<11>,(((((Suisubl1<14>,Suisu1<16>)<15>,Suiame1<18>)<17>,Suisub1<20>)<19>,Suicot1<22>)<21>,(Suipic1<24>,Suidec1<26>)<25>)<23>)<13>,(Suigr1<28>,Suipla1<30>)<29>)<27>,((Suilu4<32>,Suiocc1<34>)<33>,Suibr2<36>)<35>)<31>,Suilak1<38>)<37>,Suicli1<40>)<39>,(Suipal1<42>,Suiamp1<44>)<43>)<41>,((((Rhivi1<46>,Rhives1<48>)<47>,Rhivul1<50>)<49>,Rhisa1<52>)<51>,Rhitru1<54>)<53>)<45>,(((Pismi1<56>,Pisti1<58>)<57>,Sclci1<60>)<59>,(Paxin1<62>,Gyrli1<64>)<63>)<61>)<55>,Pilcr1<66>)<65>,(((Lacam2<68>,Lacbi2<70>)<69>,Hebcy2<72>)<71>,Amamu1<74>)<73>)<67>,((Theter1<76>,Thega1<78>)<77>,(Ruscom1<80>,Rusbre1<82>)<81>)<79>)<75>,(Gaumor1<84>,Hyssto1<86>)<85>)<83>,Hydru2<88>)<87>,Cananz1<90>)<89>' -o NEW_summary_tree_contractions.png -y Contractions
+
+###to run MCL
+cd ~/bigdata/Suillus_comp_genomics/Suillus_proteins
+#to prepare categories: 
+ln -s ~/bigdata/Suillus_comp_genomics/All_proteins/Sui*.fasta .
+#plus out group 
+ln -s ~/bigdata/Suillus_comp_genomics/All_proteins/Rhitru1.fasta
+
+#there is now two folders of proteins 
+~/bigdata/Suillus_comp_genomics/Suillus_proteins
+and 
+~/bigdata/Suillus_comp_genomics/All_proteins
+
+#run step 1, 
+#then check number of split files 
+
+#submit as array: (I jsut wrap this into a.sh scriopt)
+sbatch -s --array=1-443 pipeline/02_blast_arrayjob_Suillus.sh
+
+To set up the cafe script:
+
+#first you need to add a column to the .tab input file (cafe assumes a description and and ID collum that proceeds taxon names) 
+Orthogroups_counts_Suillus.tab 
+
+sed -e 's/^/null\t/' Orthogroups_counts_Suillus.tab > formatted_Orthogroups_counts_Suillus.tab
+
+
+tree ((Suipal1:0.109974,Suiamp1:0.109974):0.0262504,(Suicli1:0.116091,(Suilak1:0.100523,(((Suibov1:0.0661638,(Suivar1:0.0340511,(Suifus1:0.0243012,(Suitom1:0.0139816,Suihi1:0.0139816):0.0103196):0.00974993):0.0321127):0.014397,((Suidec1:0.04212,Suipic1:0.04212):0.0316824,(Suicot1:0.0638785,(Suisub1:0.0545777,(Suisu1:0.0436089,Suiame1:0.0436089):0.0109689):0.00930077):0.0099239):0.00675842):0.00594275,((Suipla1:0.0454267,Suigr1:0.0454267):0.0340538,(Suibr2:0.0459452,(Suiocc1:0.0329249,Suilu4:0.0329249):0.0130203):0.0335353):0.00702306):0.0140189):0.0155688):0.0201332)
+
+To get lambda tree:
+echo "((Suipal1:0.109974,Suiamp1:0.109974):0.0262504,(Suicli1:0.116091,(Suilak1:0.100523,(((Suibov1:0.0661638,(Suivar1:0.0340511,(Suifus1:0.0243012,(Suitom1:0.0139816,Suihi1:0.0139816):0.0103196):0.00974993):0.0321127):0.014397,((Suidec1:0.04212,Suipic1:0.04212):0.0316824,(Suicot1:0.0638785,(Suisub1:0.0545777,(Suisu1:0.0436089,Suiame1:0.0436089):0.0109689):0.00930077):0.0099239):0.00675842):0.00594275,((Suipla1:0.0454267,Suigr1:0.0454267):0.0340538,(Suibr2:0.0459452,(Suiocc1:0.0329249,Suilu4:0.0329249):0.0130203):0.0335353):0.00702306):0.0140189):0.0155688):0.0201332)" | perl -p -e 's/\):\d+\.\d+/)1/g; s/\w+\d+:\d.\d+/1/g'
+
+or echo "<your tree>" | perl -p -e 's/\):\d+\.\d+/)1/g; s/\w+\d+:\d.\d+/1/g'
+
+#then, copy this into the lambda value in to the .sh script
+
+
+
+###to run MCL 
+cd /bigdata/stajichlab/llofgren/Suillus_comp_genomics/Suillus_proteins
+
+cat *.fasta > makeblastdb_input.fasta
+
+makeblastdb -in makeblastdb_input.fasta -dbtype prot -out blastdb
+
+
+blastp -num_threads 4 -db blastdb -query makeblastdb_input.fasta -outfmt 7 -seg yes > blast_output.txt
+
+
+((((((((((((((((((Suiame1:7.263334,Suisu1:7.263334):1.108271,Suisub1:8.371605):0.955925,Suicot1:9.327531):1.454936,(Suipic1:5.133299,Suidec1:5.133299):5.649167):0.647428,((((Suihi1:2.409946,Suitom1:2.409946):0.412960,Suivar1:2.822906):0.306610,Suifus1:3.129516):5.943735,Suibov1:9.073251):2.356643):0.337152,((Suilu4:3.691672,Suiocc1:3.691672):1.042066,Suibr2:4.733738):7.033308):0.251933,(Suigr1:4.485193,Suipla1:4.485193):7.533787):1.701583,Suilak1:13.720563):1.564850,Suicli1:15.285413):4.046191,(Suipal1:14.032438,Suiamp1:14.032438):5.299167):8.368396,((((Rhivi1:5.279925,Rhives1:5.279925):10.751937,Rhivul1:16.031862):2.168700,Rhisa1:18.200562):2.781492,Rhitru1:20.982054):6.717946):35.832689,(((Pismi1:15.953130,Pisti1:15.953130):18.291401,Sclci1:34.244531):16.999099,(Paxin1:21.336259,Gyrli1:21.336259):29.907371):12.289059):23.026342,Pilcr1:86.559032):7.918714,(((Lacam2:9.961380,Lacbi2:9.961380):47.905440,Hebcy2:57.866820):18.049676,Amamu1:75.916496):18.561249):9.624767,((Theter1:21.960482,Thega1:21.960482):73.867801,(Ruscom1:26.420111,Rusbre1:26.420111):69.408171):8.274229):20.503337,(Gaumor1:58.995611,Hyssto1:58.995611):65.610238):52.423986,Hydru2:177.029836):55.323940,Cananz1:232.353775)
+
+
+
+###to get the genes from MCL - parse the fams of interest in R, family number corresponds to the line number in the MCL dump file. 
+cd ~/bigdata/Suillus_comp_genomics/MCL/All
+
+xargs -a test_line_number_file.txt -I{} sed -n \{\}p\; test_gene_IDs.txt
+
+#note - you can run this directly, but i popped it into a .sh because it was taking too long
+xargs -a Suillus_E_line_numbers.txt -I{} sed -n \{\}p\; dump.out.All.I15 > Suillus_expansions_genes.txt
+xargs -a Suillus_C_line_numbers.txt -I{} sed -n \{\}p\; dump.out.All.I15 > Suillus_contractions_genes.txt
+
+
+
+
