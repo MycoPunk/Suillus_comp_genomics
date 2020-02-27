@@ -1,4 +1,4 @@
-setwd("~/bigdata/Suillus_comp_genomics/All_GOterms")
+setwd("~/bigdata/Suillus_comp_genomics/All_GOterms/fams_of_interest")
 options(stringsAsFactors = FALSE)
 
 #laod libraries
@@ -6,8 +6,8 @@ library(dplyr)
 library(data.table)
 
 #read in files
-contracted_genes_in_ea_fam<- read.table("contracted_genes_in_ea_fam.txt", header = FALSE, fill = TRUE, sep = "\t")
-expanded_genes_in_ea_fam<- read.table("expanded_genes_in_ea_fam.txt", header = FALSE, fill = TRUE, sep = "\t")
+contracted_genes_in_ea_fam<- read.table("contracted_genes_in_ea_fam.txtt", header = FALSE, fill = TRUE, sep = "\t")
+expanded_genes_in_ea_fam<- read.table("expanded_genes_in_ea_fam.txtt", header = FALSE, fill = TRUE, sep = "\t")
 
 #format expanded/contracted files
 expanded_genes_in_ea_fam_formatted <- data.frame(lapply(expanded_genes_in_ea_fam, function(x) {
@@ -47,3 +47,6 @@ IPR_of_interest$iprDesc<- gsub(" ", "_", IPR_of_interest$iprDesc)
 
 
 write.table(IPR_of_interest, "IPR_files.tab", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+
+
