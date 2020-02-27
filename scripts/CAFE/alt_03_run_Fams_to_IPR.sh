@@ -14,7 +14,7 @@ do
 b=$(basename "$i" .txt)
 while IFS= read -r line 
 do
-grep $line GO_files.tab | awk '{ print $2 }' > $b.IPR_anno_output.txt
+grep $line IPR_files.tab | awk '{ print $2 }' > $b.IPR_anno_output.txt
 done < $i
 done 
 
@@ -24,7 +24,8 @@ do
 b=$(basename "$i" .txt)
 while IFS= read -r line 
 do
-grep $line GO_files.tab | awk '{ print $2 }' > $b.IPR_anno_output.txt
+grep $line IPR_files.tab | awk '{ print $2 }' > $b.IPR_anno_output.txt
 done < $i
 done 
+
 
