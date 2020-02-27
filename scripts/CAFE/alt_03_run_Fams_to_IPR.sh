@@ -8,13 +8,13 @@
 #SBATCH --mail-type=ALL
 
 ##print the IPR annotations for each family 
-#expansions
+
 for i in *contractions.clean.txt
 do
 b=$(basename "$i" .txt)
 while IFS= read -r line 
 do
-grep $line GO_files.tab | awk '{ print $2 }' > IPR_anno_output.$b.txt
+grep $line GO_files.tab | awk '{ print $2 }' > $b.IPR_anno_output.txt
 done < $i
 done 
 
@@ -24,7 +24,7 @@ do
 b=$(basename "$i" .txt)
 while IFS= read -r line 
 do
-grep $line GO_files.tab | awk '{ print $2 }' > IPR_anno_output.$b.txt
+grep $line GO_files.tab | awk '{ print $2 }' > $b.IPR_anno_output.txt
 done < $i
 done 
 
