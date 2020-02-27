@@ -1,6 +1,6 @@
 
 #This script looks at the distribution of BigScape identified Terpene and NRPS secondary metabolite clusters
-setwd("~/Desktop/")
+setwd("~/Desktop/BIGSCAPE_results_feb_2020_pub_version/")
 
 #load packages
 library("seqinr")
@@ -8,13 +8,18 @@ library("tidyr")
 library("UpSetR")
 
 #read in input files: (these were created using Jason's Parsing script that creates counts from the 'Orthogroups' output file from orthofinder)
-Terpenes_Suillus<- read.table("absence_presence_terp_suillus_only.tab", header = TRUE)
+#Terpenes_Suillus<- read.table("absence_presence_terp_suillus_only.tab", header = TRUE)
 
+#new version
+Terpenes_Suillus<- read.table("absence_presence_Terpenes.tab", header = TRUE)
 
 #white list
 White_list<- c("S_americanus", 
                "S_pictus", 
-               "S_placedus")
+               "S_placedus", 
+               "S_plorans",
+               "S_subluteus",
+               "S_discolor")
 
 Red_list<- c("S_bovinus", 
              "S_brevipes", 
@@ -95,8 +100,7 @@ based_on_red2<- Terpenes_Suillus[,colnames(new_red)]
 based_on_larch2<- Terpenes_Suillus[,colnames(new_larch)]
 
 #are any clusters in all of one host group and none of the others?
-#(skipping- i can see from the above outpit that they do not)
-
+#(skipping- we can see from the above output that there are not)
 
 
 
@@ -136,10 +140,11 @@ input_df<- cbind(White, Red, Larch)
 upset(input_df, sets = c("Larch", "White", "Red"), mb.ratio = c(0.55, 0.45), order.by = "degree",
       mainbar.y.label = "Intersection Size - Terpenes",
       keep.order = TRUE)
-# there are more unique terpene clusters in white associates than in other host groups 
+# no particular trends 
 
 ###do the same plot for NRPS
-NRPS_Suillus_init<- read.table("absence_presence_NRPS_Suillus_only.tab", header = TRUE)
+#NRPS_Suillus_init<- read.table("absence_presence_NRPS_Suillus_only.tab", header = TRUE)
+NRPS_Suillus_init<- read.table("absence_presence_NRPS.tab", header = TRUE)
 NRPS_Suillus<- NRPS_Suillus_init[, 2:ncol(NRPS_Suillus_init)]
 row.names(NRPS_Suillus)<- NRPS_Suillus_init$ACC
 
@@ -151,18 +156,26 @@ class(NRPS_Suillus_numeric[1,1])
 NRPS_Suillus_binary<- as.data.frame(lapply(NRPS_Suillus_numeric, gsub, pattern = 2, replacement = 1, fixed = TRUE))
 NRPS_Suillus_binary_2<- as.data.frame(lapply(NRPS_Suillus_binary, gsub, pattern = 3, replacement = 1, fixed = TRUE))
 NRPS_Suillus_binary_3<- as.data.frame(lapply(NRPS_Suillus_binary_2, gsub, pattern = 4, replacement = 1, fixed = TRUE))
-row.names(NRPS_Suillus_binary_3)<- rownames(NRPS_Suillus)
+NRPS_Suillus_binary_4<- as.data.frame(lapply(NRPS_Suillus_binary_3, gsub, pattern = 5, replacement = 1, fixed = TRUE))
+NRPS_Suillus_binary_5<- as.data.frame(lapply(NRPS_Suillus_binary_4, gsub, pattern = 6, replacement = 1, fixed = TRUE))
+
+
+row.names(NRPS_Suillus_binary_5)<- rownames(NRPS_Suillus)
 
 sum(NRPS_Suillus_numeric == 2)
 sum(NRPS_Suillus_binary == 2)
 sum(NRPS_Suillus_binary == 3)
 sum(NRPS_Suillus_binary_2 == 3)
 sum(NRPS_Suillus_binary_3 == 4)
+sum(NRPS_Suillus_numeric == 5)
+sum(NRPS_Suillus_binary_4 == 5)
+sum(NRPS_Suillus_numeric == 6)
+sum(NRPS_Suillus_binary_5 == 6)
 
 #split by host association
-White_df<- NRPS_Suillus_binary_3[rownames(NRPS_Suillus_binary_3) %in% White_list, ]
-Red_df<- NRPS_Suillus_binary_3[rownames(NRPS_Suillus_binary_3) %in% Red_list, ]
-Larch_df<- NRPS_Suillus_binary_3[rownames(NRPS_Suillus_binary_3) %in% Larch_list, ]
+White_df<- NRPS_Suillus_binary_5[rownames(NRPS_Suillus_binary_5) %in% White_list, ]
+Red_df<- NRPS_Suillus_binary_5[rownames(NRPS_Suillus_binary_5) %in% Red_list, ]
+Larch_df<- NRPS_Suillus_binary_5[rownames(NRPS_Suillus_binary_5) %in% Larch_list, ]
 
 #chagne back to numeric
 White_df_2<- as.data.frame(lapply(White_df, as.numeric))
@@ -174,9 +187,10 @@ White<- data.frame(White= round(colMeans(White_df_2), 0))
 Red<- data.frame(Red= round(colMeans(Red_df_2), 0))
 Larch<- data.frame(Larch= round(colMeans(Larch_df_2), 0))
 
-input_df<- cbind(White, Red, Larch)
+input_df2<- cbind(White, Red, Larch)
 
 #make upset plot of NRPS
-upset(input_df, sets = c("Larch", "White", "Red"), mb.ratio = c(0.55, 0.45), order.by = "degree",
+upset(input_df2, sets = c("Larch", "White", "Red"), mb.ratio = c(0.55, 0.45), order.by = "degree",
       mainbar.y.label = "Intersection Size - NRPS",
       keep.order = TRUE)
+
