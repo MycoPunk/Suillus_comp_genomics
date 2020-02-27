@@ -1,12 +1,13 @@
-setwd("~/bigdata/Suillus_comp_genomics/All_GOterms")
+setwd("~/bigdata/Suillus_comp_genomics/All_GOterms/fams_of_interest")
 options(stringsAsFactors = FALSE)
 
 #laod libraries
 #library(dplyr)
 
 #read in files
-contracted_genes_in_ea_fam<- read.table("contracted_genes_in_ea_fam.txt", header = FALSE, fill = TRUE, sep = "\t")
-expanded_genes_in_ea_fam<- read.table("expanded_genes_in_ea_fam.txt", header = FALSE, fill = TRUE, sep = "\t")
+contracted_genes_in_ea_fam<- read.table("contracted_genes_in_ea_fam.txt", header = FALSE, fill = TRUE, sep = "\t", row.names=1)
+expanded_genes_in_ea_fam<- read.table("expanded_genes_in_ea_fam.txt", header = FALSE, fill = TRUE, sep = "\t", row.names=1)
+
 
 #read in all GO files 
 #read in files
@@ -41,27 +42,13 @@ contracted_genes_in_ea_fam_formatted <- data.frame(lapply(contracted_genes_in_ea
   sub(".*\\|", "", x)
 }))
 
-
-###get GO terms
-#for each row in expanded_gnes_in_ea_fam_formatted
-#if the col matches the GO_files$ID, get the GO_files$goName
-
-#GO_df<- as.list()
-#for (i in 1:nrow(expanded_genes_in_ea_fam_formatted)){
-#  for (j in 1:nrow(GO_files))
-#     if(expanded_genes_in_ea_fam_formatted[i] == GO_files$ID[j])
-#     GO_df[i]<- as.list(GO_files$goName[j])}
-
-#test<- setDT(expanded_genes_in_ea_fam_formatted)[V1 %chin% GO_files$ID]
-
-
+row.names(expanded_genes_in_ea_fam_formatted)<- rownames(expanded_genes_in_ea_fam)
+row.names(contracted_genes_in_ea_fam_formatted)<- rownames(contracted_genes_in_ea_fam)
 
 ###print and finish in bash 
 #first replace spaces for printing in the GO file's go terms 
-
 GO_files$goName<- GO_files[, gsub(" ", "_", GO_files$goName)]
 
-
-write.table(expanded_genes_in_ea_fam_formatted, "genes_in_expanded_fams.tab", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
-write.table(contracted_genes_in_ea_fam_formatted, "genes_in_contracted_fams.tab", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(expanded_genes_in_ea_fam_formatted, "genes_in_expanded_fams.tab", sep="\t", row.names = TRUE, col.names = FALSE, quote = FALSE)
+write.table(contracted_genes_in_ea_fam_formatted, "genes_in_contracted_fams.tab", sep="\t", row.names = TRUE, col.names = FALSE, quote = FALSE)
 write.table(GO_files, "GO_files.tab", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
