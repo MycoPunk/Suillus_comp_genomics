@@ -34,9 +34,6 @@ names(Interpro_table_reshaped)<- sub("value.", "", names(Interpro_table_reshaped
 row.names(Interpro_table_reshaped)<- Interpro_table_reshaped[,1]
 Interpro_table_reshaped<- Interpro_table_reshaped[,-1]
 
-#remove factors
-#Interpro_table_reshaped_test <- cbind(Interpro_table_reshaped[,1], data.frame(lapply(Interpro_table_reshaped[,2:ncol(Interpro_table_reshaped)], as.numeric), stringsAsFactors=FALSE))
-
 #fix empties
 Interpro_table_reshaped_filtered <- Interpro_table_reshaped +.001
 
@@ -50,19 +47,13 @@ rm(Interpro_table_reshaped)
 ncol(Interpro_table_reshaped_filtered)
 #there are 7960 gene fams - you'e going to have to split this up somehow. 
 
-#before rendering - rename Thega1 and Theter1, so that they don't end up below suillus
-#first try just movig it
+#before rendering - Move Thega1 and Theter1, so that they don't end up below suillus
 nrow(Interpro_table_reshaped_filtered)
-short<- Interpro_table_reshaped_filtered[1:44,]
-Interpro_for_rendering<- rbind(Interpro_table_reshaped_filtered[45:46,], short)
-
-##try just the first 50
-#pheatmap(Interpro_for_rendering[,1:50], 
-#         angle_col = "45", 
-#         fontsize = 6,
-#         cluster_rows= FALSE,
-#         filename = "test2.pdf")
-
+#short<- Interpro_table_reshaped_filtered[1:44,]
+last.two<- Interpro_table_reshaped_filtered[45:46,]
+others<- Interpro_table_reshaped_filtered[1:21,]
+Suilluses<- Interpro_table_reshaped_filtered[22:44,]
+Interpro_for_rendering<- rbind(Suilluses, others, last.two)
 
 #print all interpro heatmaps in sections for visual inspection
 pdf("pheatmap1.pdf", width=12, height=9)
@@ -381,3 +372,86 @@ pheatmap(terpene_doms,
          cluster_rows= FALSE,
          filename = "terpene_doms.pdf")
 
+
+
+###sort the whole df by variance to get at just the interesting IPRs
+# get variance for ea col.
+
+#var_list<- apply(Interpro_for_rendering, 2, var)
+#the above is variance across all - lets get teh variance between the two groups
+
+Interpro_for_rendering_Suillus<- Interpro_for_rendering[grep("Sui", row.names(Interpro_for_rendering)),]
+Interpro_for_rendering_Other<- Interpro_for_rendering[grep("Sui", row.names(Interpro_for_rendering), invert = TRUE),]
+
+#get variance between the two groups 
+var_func <- function(x, y) var(x,y)
+var_list<- mapply(var_func, Interpro_for_rendering_Suillus, Interpro_for_rendering_Other)
+
+
+#shrink list to only var > 25
+var_list_sig<- var_list[var_list > 25]
+
+length(var_list)
+length(var_list_sig)
+
+#subset the main data frame based on inclusion in the subset list
+Interpro_for_rendering_subset<- Interpro_for_rendering[,names(Interpro_for_rendering) %in% names(var_list_sig)]
+
+pheatmap(Interpro_for_rendering_subset[,1:ncol(Interpro_for_rendering_subset)], 
+         #angle_col = "45", 
+         fontsize = 5,
+         cluster_rows= FALSE,
+         filename = "NEWtest_var25.pdf")
+
+
+#can we subset this further by significantly different groups? (do a t-test across all for example?)
+
+#shrink list to only var > .0001 to remove any idential values (t-test will throw an error if any of the comparasons are identical)
+
+#shrink list to only var > 25
+var_list_sig<- var_list[var_list > 0]
+
+length(var_list)
+length(var_list_sig)
+
+#subset the main data frame based on inclusion in the subset list
+Interpro_for_rendering_subset<- Interpro_for_rendering[,names(Interpro_for_rendering) %in% names(var_list_sig)]
+ncol(Interpro_for_rendering_subset)
+
+#now split the data frame again 
+Interpro_for_rendering_Suillus2<- Interpro_for_rendering_subset[grep("Sui", row.names(Interpro_for_rendering_subset)),]
+Interpro_for_rendering_Other2<- Interpro_for_rendering_subset[grep("Sui", row.names(Interpro_for_rendering_subset), invert = TRUE),]
+
+#now run a t-test on the subset data frame, where we know the difference is not zero.
+t.test_results <- mapply(t.test, x= Interpro_for_rendering_Suillus2, y = Interpro_for_rendering_Other2, SIMPLIFY = F)
+ttest.pval <- sapply(t.test_results, '[[', 'p.value')
+
+#reduce list to only significant p-vals
+ttest.pval_sig<- ttest.pval[ttest.pval < .00001] # = 1.0e-5
+length(ttest.pval_sig)
+
+#now subset the original data frame based on significance
+Interpro_for_rendering_subsetNEW<- Interpro_for_rendering[,names(Interpro_for_rendering) %in% names(ttest.pval_sig)]
+ncol(Interpro_for_rendering_subsetNEW)
+###make color gradient 
+#colfunc <- colorRampPalette(c("#432B46", "#FFFFFF"))
+library(RColorBrewer)
+library(viridis)
+pheatmap(Interpro_for_rendering_subsetNEW[,1:ncol(Interpro_for_rendering_subsetNEW)], 
+         angle_col = "315", 
+         fontsize = 3,
+         cluster_rows= FALSE,
+         cluster_cols = TRUE,
+         scale = "column",
+         color = inferno(100),
+         #color = colfunc(100),
+         #breaks = 1,
+         border_color = NA,
+         cellheight=5,cellwidth=5,
+         filename = "heatmap_PIR_square_arranged.pdf")
+
+#get names for the significantly different clusters
+names_list<- names(Interpro_for_rendering_subsetNEW)
+write.table(names_list, "names_of_most_sig_different_interpro_doms.txt", sep="\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+help(pheatmap)
