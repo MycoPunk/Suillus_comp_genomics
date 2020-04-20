@@ -174,7 +174,7 @@ Theter1_TMHMM_sm.by.col<- data.frame(cbind(Theter1_TMHMM_sm[c(TRUE, FALSE), ],
 Thega1_TMHMM_sm.by.col<- data.frame(cbind(Thega1_TMHMM_sm[c(TRUE, FALSE), ],
                                           Thega1_TMHMM_sm[c(FALSE, TRUE), ]))
 Rhivi1_TMHMM_sm.by.col<- data.frame(cbind(Rhivi1_TMHMM_sm[c(TRUE, FALSE), ],
-                                           Rhivi1_TMHMM_sm[c(FALSE, TRUE), ]))
+                                          Rhivi1_TMHMM_sm[c(FALSE, TRUE), ]))
 Rhives1_TMHMM_sm.by.col<- data.frame(cbind(Rhives1_TMHMM_sm[c(TRUE, FALSE), ],
                                            Rhives1_TMHMM_sm[c(FALSE, TRUE), ]))
 Rhisa1_TMHMM_sm.by.col<- data.frame(cbind(Rhisa1_TMHMM_sm[c(TRUE, FALSE), ],
@@ -492,8 +492,8 @@ totals.2<- data.frame(cbind(Suivar1,
                             Gyrli1,
                             Cananz1,
                             Hyssto1
-                            ),
-                      row.names = "SSPs_signalP,TMHMM,lt_300aa")
+),
+row.names = "SSPs_signalP,TMHMM,lt_300aa")
 totals.2[1,]
 
 #write out totals to a file
@@ -563,19 +563,19 @@ Pismi1_in<- seqinr::read.fasta(file = "Pismi1_wo_stops.fasta",
 Sclci1_in<- seqinr::read.fasta(file = "Sclci1_wo_stops.fasta", 
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Theter1_in<- seqinr::read.fasta(file = "Theter1_wo_stops.fasta", 
-                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Thega1_in<- seqinr::read.fasta(file = "Thega1_wo_stops.fasta", 
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Rhivi1_in<- seqinr::read.fasta(file = "Rhivi1_wo_stops.fasta", 
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Rhives1_in<- seqinr::read.fasta(file = "Rhives1_wo_stops.fasta", 
-                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Rhisa1_in<- seqinr::read.fasta(file = "Rhisa1_wo_stops.fasta", 
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Ruscom1_in<- seqinr::read.fasta(file = "Ruscom1_wo_stops.fasta", 
-                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Rusbre1_in<- seqinr::read.fasta(file = "Rusbre1_wo_stops.fasta", 
-                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Pisti1_in<- seqinr::read.fasta(file = "Pisti1_wo_stops.fasta", 
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Lacam2_in<- seqinr::read.fasta(file = "Lacam2_wo_stops.fasta", 
@@ -583,13 +583,13 @@ Lacam2_in<- seqinr::read.fasta(file = "Lacam2_wo_stops.fasta",
 Hydru2_in<- seqinr::read.fasta(file = "Hydru2_wo_stops.fasta", 
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Gaumor1_in<- seqinr::read.fasta(file = "Gaumor1_wo_stops.fasta", 
-                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Gyrli1_in<- seqinr::read.fasta(file = "Gyrli1_wo_stops.fasta", 
                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Cananz1_in<- seqinr::read.fasta(file = "Cananz1_wo_stops.fasta", 
-                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Hyssto1_in<- seqinr::read.fasta(file = "Hyssto1_wo_stops.fasta", 
-                               seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+                                seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 
 
 #function to isolate the gene ID
@@ -999,31 +999,31 @@ Pismi1_effectors<- seqinr::read.fasta(file = "Pismi1_EffectorCandidates.fasta",
 Sclci1_effectors<- seqinr::read.fasta(file = "Sclci1_EffectorCandidates.fasta", 
                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Theter1_effectors<- seqinr::read.fasta(file = "Theter1_EffectorCandidates.fasta", 
-                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
-Thega1_effectors<- seqinr::read.fasta(file = "Thega1_EffectorCandidates.fasta", 
                                        seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Thega1_effectors<- seqinr::read.fasta(file = "Thega1_EffectorCandidates.fasta", 
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Rhivi1_effectors<- seqinr::read.fasta(file = "Rhivi1_EffectorCandidates.fasta", 
                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Rhives1_effectors<- seqinr::read.fasta(file = "Rhives1_EffectorCandidates.fasta", 
-                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
-Rhisa1_effectors<- seqinr::read.fasta(file = "Rhisa1_EffectorCandidates.fasta", 
                                        seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
-Ruscom1_effectors<- seqinr::read.fasta(file = "Ruscom1_EffectorCandidates.fasta", 
+Rhisa1_effectors<- seqinr::read.fasta(file = "Rhisa1_EffectorCandidates.fasta", 
                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Ruscom1_effectors<- seqinr::read.fasta(file = "Ruscom1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Rusbre1_effectors<- seqinr::read.fasta(file = "Rusbre1_EffectorCandidates.fasta", 
                                        seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Pisti1_effectors<- seqinr::read.fasta(file = "Pisti1_EffectorCandidates.fasta", 
-                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Lacam2_effectors<- seqinr::read.fasta(file = "Lacam2_EffectorCandidates.fasta", 
                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Hydru2_effectors<- seqinr::read.fasta(file = "Hydru2_EffectorCandidates.fasta", 
                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Gaumor1_effectors<- seqinr::read.fasta(file = "Gaumor1_EffectorCandidates.fasta", 
-                                      seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
-Gyrli1_effectors<- seqinr::read.fasta(file = "Gyrli1_EffectorCandidates.fasta", 
                                        seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
-Cananz1_effectors<- seqinr::read.fasta(file = "Cananz1_EffectorCandidates.fasta", 
+Gyrli1_effectors<- seqinr::read.fasta(file = "Gyrli1_EffectorCandidates.fasta", 
                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
+Cananz1_effectors<- seqinr::read.fasta(file = "Cananz1_EffectorCandidates.fasta", 
+                                       seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 Hyssto1_effectors<- seqinr::read.fasta(file = "Hyssto1_EffectorCandidates.fasta", 
                                        seqtype = "AA",as.string = TRUE, set.attributes = FALSE)
 
@@ -1390,7 +1390,7 @@ for (i in 1:n){
 
 p_value<-mean(abs(rand.dist)>=abs(actual_diff_GS))
 p_value
-#0.8589
+
 
 #split and get stats for n proteins 
 results_with_percentages_for_split<- cbind(results_with_percentages, row.names(results_with_percentages))
@@ -1468,7 +1468,7 @@ for (i in 1:n){
 
 p_value<-mean(abs(rand.dist)>=abs(actual_diff_proteins))
 p_value
-# 0.6307
+
 
 
 #get stats for SSP's 
@@ -1500,7 +1500,7 @@ t.test(Suillus_ssps$X.SSPs_signalP.TMHMM.lt_300aa, Other_ssps$X.SSPs_signalP.TMH
 
 
 ########
-#put randomization test for SSPs here? is this hiding down with the figures for some reason? 
+#put randomization test for SSPs here?  hiding down with the figures 
 ######  
 
 
@@ -1632,8 +1632,8 @@ stripchart(SSPs_out_of_prot_df$X. ~ SSPs_out_of_prot_df$group,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 19, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,4), 
            ylab = "% SSPs out of all proteins", 
@@ -1730,8 +1730,8 @@ stripchart(SSPs_out_of_SSSPs_df$`%` ~ SSPs_out_of_SSSPs_df$group,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 19, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,80), 
            ylab = "% SSSPs out of SSPs", 
@@ -1829,8 +1829,8 @@ stripchart(effectors_out_of_SSSPs_df$`%` ~ effectors_out_of_SSSPs_df$group,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 19, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,60), 
            ylab = "% Effectors out of SSPs", 
@@ -1887,8 +1887,8 @@ stripchart(effectors_out_of_SSSPs_df$logX1 ~ effectors_out_of_SSSPs_df$group,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,10), 
            ylab = "log % Effectors out of SSPs", 
@@ -1973,8 +1973,8 @@ stripchart(SSP_df$X1 ~ SSP_df$X2,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,650), 
            ylab = "SSPs", 
@@ -2028,8 +2028,8 @@ stripchart(SSP_df$logX1 ~ SSP_df$X2,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,10), 
            ylab = "log SSPs", 
@@ -2092,8 +2092,8 @@ stripchart(SSSP_df$X1 ~ SSSP_df$X2,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,460), 
            ylab = "SSSPs", 
@@ -2146,8 +2146,8 @@ stripchart(SSSP_df$logX1 ~ SSSP_df$X2,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,10), 
            ylab = "log SSSPs", 
@@ -2208,8 +2208,8 @@ stripchart(effector_df$X1 ~ effector_df$X2,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
            pch = 16, 
-           col = c("#283666", "#B2933B"),
-           bg = rep(c("#283666", "#B2933B")),
+           col = c("#40595266", "#9B905B66"),
+           bg = rep(c("#40595266", "#9B905B66")),
            cex.axis = 0.7,
            ylim=c(0,280), 
            ylab = "Effectors", 
@@ -2260,4 +2260,3 @@ for (i in 1:n){
 
 p_value<-mean(abs(rand.dist)>=abs(actual_diff_effectors))
 p_value
-
