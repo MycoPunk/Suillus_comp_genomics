@@ -13,7 +13,6 @@ library("phangorn")
 state_df_stag<- read.csv("Suillus_trait_states_STAG.csv")
 state_df_iq<- read.csv("Suillus_trait_states_IQ.csv")
 
-
 #read in tree
 phy_stag<- as.character(state_df_stag[1,5])
 phy_stag<- read.tree(text = phy_stag)
@@ -31,11 +30,9 @@ x3<-setNames(host_state_df[,2],host_state_df[,1])
 phy_stag<-rotateNodes(phy_stag,"all")
 phy_iq<-rotateNodes(phy_iq,"all")
 
-
 #need to make a simmap to connect chr states to tips
 phy_stag<-make.simmap(phy_stag, x3)
 phy_iq<-make.simmap(phy_iq, x3)
-
 
 #link the host states
 states_stag<-getStates(phy_stag,"tips")
@@ -74,8 +71,16 @@ add.simmap.legend(colors=cols2,x=0.9*par()$usr[1],
 
 
 
-#reset all the inputs and create cophylo object wihout linked trait states
-#re-read in tree
+#create object cophylo and rotate nodes to optimize matching 
+matched_trees<-cophylo(phy_iq,phy_stag, rotate=TRUE)
+plot(matched_trees,fsize=0.5)
+#gives error  "Error in cat(x, file = file, sep = c(rep.int(sep, ncolumns - 1), "\n"),  : 
+#  invalid connection"
+
+
+#try resetting all the inputs and creating cophylo object wihout linked trait states
+#re-read this all overwrite vars:
+#read in tree
 phy_stag<- as.character(state_df_stag[1,5])
 phy_stag<- read.tree(text = phy_stag)
 phy_iq<- as.character(state_df_iq[1,5])
@@ -96,6 +101,7 @@ phy_stag<-make.simmap(phy_stag, states_stag)
 #link the host states
 states_iq<-getStates(phy_iq,"tips")
 states_stag<-getStates(phy_stag,"tips")
+
 
 
 ##choose model IQ
@@ -120,7 +126,7 @@ AIC_stag
 aic.w(AIC_stag)
 #ER wins STAG
 #ER        SYM        ARD 
-#0.93566328 0.06431460 0.00002212 
+#0.85389636 0.14605968 0.00004397 
 
 ##choose model IQ
 # equal rates model 
@@ -144,7 +150,7 @@ AIC_iq
 aic.w(AIC_iq)
 #ER wins Siq
 #ER        SYM        ARD 
-#0.84975506 0.15016107 0.00008387
+#0.84556852 0.15433521 0.00009626
 
 
 #set node colors
@@ -159,3 +165,5 @@ nodelabels.cophylo(pie=model_iq$lik.anc,piecol=cols, which="left", cex = 0.6)
 nodelabels.cophylo(pie=model_stag$lik.anc,piecol=cols, which="right", cex = 0.6)
 tiplabels.cophylo(pie=to.matrix(states_iq[matched_trees$trees[[1]]$tip.label],sort(unique(states_iq))), piecol=cols,cex=0.4, which="left")
 tiplabels.cophylo(pie=to.matrix(states_stag[matched_trees$trees[[1]]$tip.label],sort(unique(states_stag))), piecol=cols,cex=0.4, which="right")
+
+
