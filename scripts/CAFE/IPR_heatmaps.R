@@ -282,15 +282,63 @@ length(t_test_results_greater_clean[t_test_results_greater_clean == "NA"])
 #subset list
 t_test_results_greater_list<- t_test_results_greater_clean[t_test_results_greater_clean < .0005]
 length(t_test_results_greater_list)
+t_test_results_greater_list_in_total<- t_test_results_greater_clean[t_test_results_greater_clean < .001]
+length(t_test_results_greater_list_in_total)
 
 #put p.vals in order 
 t_test_results_greater_list_to_sort<-unlist(t_test_results_greater_list)
 t_test_results_greater_list_df<- as.data.frame(t_test_results_greater_list_to_sort)
 t_test_results_greater_list_ordered<- t_test_results_greater_list_df[order(t_test_results_greater_list_df$t_test_results_greater_list_to_sort), , drop = FALSE]
 
+
 #subset dataframes for plotting
 Interpro_for_rendering_greater<- Interpro_table_reshaped_by_greater[,names(Interpro_table_reshaped_by_greater) %in% rownames(t_test_results_greater_list_ordered)]
 ncol(Interpro_for_rendering_greater)
+
+Interpro_for_rendering_greater_all<- Interpro_table_reshaped_by_greater[,names(Interpro_table_reshaped_by_greater) %in% names(t_test_results_greater_list_in_total)]
+ncol(Interpro_for_rendering_greater_all)
+
+#get totals for known antioxident's of interest by term 
+peroxidase<- grep("peroxidase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+peroxidase
+Glutathione<- grep("Glutathione", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+Glutathione
+#this is in the subset
+catalase<- grep("catalase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+catalase
+#5, also in the subset
+superoxide<- grep("superoxide", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+superoxide
+#1 of these
+dismutase<- grep("dismutase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+dismutase
+#same 1
+peroxiredoxin<- grep("peroxiredoxin", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+peroxiredoxin
+#1 of these
+thioredoxin<- grep("thioredoxin", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+thioredoxin
+#three of these
+Pyridine_nucleotide_disulphide_oxidoreductase<- grep("Pyridine nucleotide-disulphide oxidoreductase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+Pyridine_nucleotide_disulphide_oxidoreductase
+aldehyde_dehydrogenase<- grep("Aldehyde dehydrogenase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+aldehyde_dehydrogenase
+glutaredoxin<- grep("glutaredoxin", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+glutaredoxin
+#none
+redoxin<- grep(" redoxin ", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+redoxin
+#none
+methionine_sulfoxide_reductase<- grep("methionine", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+methionine_sulfoxide_reductase
+#maybe Peptide methionine sulphoxide reductase MsrA? 
+thiol<- grep("thiol", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
+thiol
+#none 
+
+#print for supplemental table 
+write.table(Interpro_for_rendering_greater_all, "IPR_redox.txt", sep="\t", row.names = TRUE, col.names = TRUE, quote = FALSE)
+
 
 ###plot this: 
 
