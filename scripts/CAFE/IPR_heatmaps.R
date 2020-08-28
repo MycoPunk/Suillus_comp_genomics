@@ -158,7 +158,7 @@ allRes_greater
 
 allRes_less <- GenTable(myGOdata_less, classicFisher = resultFisher_less, orderBy = "resultFisher", ranksOf = "classicFisher", topNodes = 10)
 allRes_less
-#GO:0045454 = cell redox homeostasis 
+#GO:0006412 = translation 
 
 ##link the GO terms back to the IPR annotations
 #read back in files
