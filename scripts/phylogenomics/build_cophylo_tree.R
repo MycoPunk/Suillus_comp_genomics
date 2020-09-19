@@ -40,6 +40,7 @@ states_iq<-getStates(phy_iq,"tips")
 
 #set color pallet: 
 #(#3E4B60 = dark blue = generalist)
+#(#FFFFFF) = white = unkown 
 #(#B36757 = pink = Larch)
 #(#405952 = dark green = Pseudotsuga)
 #(#5676A1 = light blue = Red Pine)
@@ -47,7 +48,7 @@ states_iq<-getStates(phy_iq,"tips")
 #palette = c("#3E4B60", "#B36757", "#405952", "#5676A1", "#B09136")
 
 #plot IQ tree
-cols<-setNames(palette(c("#3E4B60", "#B36757", "#405952", "#5676A1", "#B09136"))[1:length(unique(states_iq))],sort(unique(states_iq)))
+cols<-setNames(palette(c("#3E4B60", "#B36757", "#405952", "#5676A1", "#B09136", "#FFFFFF"))[1:length(unique(states_iq))],sort(unique(states_iq)))
 fitER<-ace(states_iq,phy_iq,model="ER",type="discrete")
 fitER
 plotTree(phy_iq,type="phylogram",fsize=0.8,ftype="i")
@@ -59,7 +60,7 @@ add.simmap.legend(colors=cols,x=0.9*par()$usr[1],
 
 
 #plot STAG tree
-cols2<-setNames(palette(c("#3E4B60", "#B36757", "#405952", "#5676A1", "#B09136"))[1:length(unique(states_stag))],sort(unique(states_stag)))
+cols2<-setNames(palette(c("#3E4B60", "#B36757", "#405952", "#5676A1", "#FFFFFF", "#B09136"))[1:length(unique(states_stag))],sort(unique(states_stag)))
 fitER<-ace(states_stag,phy_stag,model="ER",type="discrete")
 fitER
 plotTree(phy_stag,type="phylogram",fsize=0.8,ftype="i")
@@ -68,7 +69,6 @@ nodelabels(node=1:phy_stag$Nnode+Ntip(phy_stag),
 tiplabels(pie=to.matrix(states_stag,sort(unique(states_stag))),piecol=cols2,cex=0.3)
 add.simmap.legend(colors=cols2,x=0.9*par()$usr[1],
                   y=-max(nodeHeights(phy_stag)),fsize=0.8)
-
 
 
 #create object cophylo and rotate nodes to optimize matching 
