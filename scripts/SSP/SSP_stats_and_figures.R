@@ -244,8 +244,12 @@ t.test(input_Suillus$percent_SSSPs_out_of_SSPs, input_Other$percent_SSSPs_out_of
 
 
 ###make figures for S vs O 
-#n SSPs
+#order
+input$treatment <- factor(input$treatment, levels = c("S", "O"))
+#set par
 par(mar = c(6.5, 8.5, 3, 3.5), mgp = c(6, 2.5, 0), las=1)
+
+#n SSPs
 stripchart(input$n_SSPs ~ input$treatment,
            vertical = TRUE,
            method = "jitter", jitter = 0.2, 
@@ -811,3 +815,4 @@ segments(x0 = .7, y0 =  Red_SSSP_per_SSP_mean, x1 = 1.3, y1= Red_SSSP_per_SSP_me
 segments(x0 = 1.7, y0 =  White_SSSP_per_SSP_mean, x1 = 2.3, y1= White_SSSP_per_SSP_mean, lwd = 2, col = "black" )
 segments(x0 = 2.7, y0 =  Larch_SSSP_per_SSP_mean, x1 = 3.3, y1= Larch_SSSP_per_SSP_mean, lwd = 2, col = "black" )
 mtext(c("a", "ab", "b"),side=1,at=c(1,2,3),line = -9, font = 1)
+
