@@ -76,7 +76,9 @@ Interpro_table_reshaped<- Interpro_table_reshaped[,-1]
 #split the datasets
 Interpro_for_rendering_Suillus<- Interpro_table_reshaped[grep("Sui", row.names(Interpro_table_reshaped)),]
 Interpro_for_rendering_Other<- Interpro_table_reshaped[grep("Sui", row.names(Interpro_table_reshaped), invert = TRUE),]
-
+#remove suspects
+suspects<- c("Gyrli1", "Rhivul1", "Rhivi1", "Rhives1", "Rhisa1")
+Interpro_for_rendering_Other_wo<- Interpro_for_rendering_Other[!rownames(Interpro_for_rendering_Other) %in% suspects, ]
 
 ##get significantly different domains
 #Rewrite to get only the domains significantly GREATER in Suillus
@@ -99,6 +101,21 @@ length(t_test_results_greater_clean[t_test_results_greater_clean == "NA"])
 t_test_results_greater_list<- t_test_results_greater_clean[t_test_results_greater_clean < .001]
 length(t_test_results_greater_list)
 
+#with High and Moderate removed
+#run the function in place of the t-test call. 
+t_test_results_greater_wo<- Map(my.t.test.p.value,Interpro_for_rendering_Suillus,Interpro_for_rendering_Other_wo)
+length(t_test_results_greater_wo[t_test_results_greater_wo < .001])
+
+#remove NAs
+length(t_test_results_greater_wo[t_test_results_greater_wo == "NA"])
+t_test_results_greater_wo_clean<- t_test_results_greater_wo[t_test_results_greater_wo != "NA"]
+length(t_test_results_greater_wo)
+length(t_test_results_greater_wo_clean)
+length(t_test_results_greater_wo_clean[t_test_results_greater_wo_clean == "NA"])
+#subset list
+t_test_results_greater_wo_list<- t_test_results_greater_wo_clean[t_test_results_greater_wo_clean < .001]
+length(t_test_results_greater_wo_list)
+
 
 #Rewrite to get only the domains significantly LESS in Suillus
 my.t.test.p.value <- function(...) {
@@ -120,24 +137,55 @@ length(t_test_results_less_clean[t_test_results_less_clean == "NA"])
 t_test_results_less_list<- t_test_results_less_clean[t_test_results_less_clean < .001]
 length(t_test_results_less_list)
 
+
+#for High and Moderate removed
+#run the function in place of the t-test call. 
+t_test_results_less_wo<- Map(my.t.test.p.value,Interpro_for_rendering_Suillus,Interpro_for_rendering_Other_wo)
+length(t_test_results_less_wo[t_test_results_less_wo < .001])
+#remove NAs
+length(t_test_results_less_wo[t_test_results_less_wo == "NA"])
+t_test_results_less_wo_clean<- t_test_results_less_wo[t_test_results_less_wo != "NA"]
+length(t_test_results_less_wo)
+length(t_test_results_less_wo_clean)
+length(t_test_results_less_wo_clean[t_test_results_less_wo_clean == "NA"])
+
+#subset list
+t_test_results_less_wo_list<- t_test_results_less_wo_clean[t_test_results_less_wo_clean < .001]
+length(t_test_results_less_wo_list)
+
+
+
 #set genes of interest 
 genesOfInterest_greater<- names(t_test_results_greater_list)
 genesOfInterest_less<- names(t_test_results_less_list)
+genesOfInterest_greater_wo<- names(t_test_results_greater_wo_list)
+genesOfInterest_less_wo<- names(t_test_results_less_wo_list)
 
 #tell topGO where to look for the genes of interest
 geneList_greater <- factor(as.integer(geneUniverse %in% genesOfInterest_greater))
 geneList_less <- factor(as.integer(geneUniverse %in% genesOfInterest_less))
+geneList_greater_wo <- factor(as.integer(geneUniverse %in% genesOfInterest_greater_wo))
+geneList_less_wo <- factor(as.integer(geneUniverse %in% genesOfInterest_less_wo))
 names(geneList_greater) <- geneUniverse
 names(geneList_less) <- geneUniverse
+names(geneList_greater_wo) <- geneUniverse
+names(geneList_less_wo) <- geneUniverse
+
 
 #to put the data into an object of type 'topGOdata'. 
 #This will contain the list of genes of interest, the GO annotations, and the GO hierarchy.
 myGOdata_greater <- new("topGOdata", description="greater", ontology="BP", allGenes=geneList_greater,  annot = annFUN.gene2GO, gene2GO = geneID2GO)
 myGOdata_less <- new("topGOdata", description="less", ontology="BP", allGenes=geneList_less,  annot = annFUN.gene2GO, gene2GO = geneID2GO)
+myGOdata_greater_wo <- new("topGOdata", description="greater", ontology="BP", allGenes=geneList_greater_wo,  annot = annFUN.gene2GO, gene2GO = geneID2GO)
+myGOdata_less_wo <- new("topGOdata", description="less", ontology="BP", allGenes=geneList_less_wo,  annot = annFUN.gene2GO, gene2GO = geneID2GO)
+
 
 #NOTE The 'ontology' argument can be set to 'BP' (biological process), 'MF' (molecular function), or 'CC' (cellular component).
 #NOTE: significant genes are just what topGO calls your genes of interest that had GO mapping
 myGOdata_greater
+myGOdata_less
+myGOdata_greater_wo
+myGOdata_less_wo
 
 #NOTE access genes of interest like this
 #sg <- sigGenes(myGOdata_greater)
@@ -150,15 +198,69 @@ resultFisher_greater
 
 resultFisher_less <- runTest(myGOdata_less, algorithm="weight01", statistic="fisher")
 resultFisher_less
-help(runTest)
+
+resultFisher_greater_wo <- runTest(myGOdata_greater_wo, algorithm="weight01", statistic="fisher")
+resultFisher_greater_wo
+
+resultFisher_less_wo <- runTest(myGOdata_less_wo, algorithm="weight01", statistic="fisher")
+resultFisher_less_wo
+
 #get top 10 results
-allRes_greater <- GenTable(myGOdata_greater, classicFisher = resultFisher_greater, orderBy = "resultFisher", ranksOf = "classicFisher", topNodes = 10)
+allRes_greater <- GenTable(myGOdata_greater, classicFisher = resultFisher_greater, orderBy = "resultFisher", ranksOf = "classicFisher", topNodes = 20)
 allRes_greater
-#GO:0055114 = oxidation-reduction process
+allRes_greater_df<- as.data.frame(allRes_greater)
+#18 results significant at p<0.01
+#GO.ID                                        Term Annotated Significant Expected classicFisher
+#1  GO:0055114                 oxidation-reduction process       924          65    26.21       7.1e-13
+#2  GO:0006556 S-adenosylmethionine biosynthetic proces...         6           5     0.17       1.0e-07
+#3  GO:0006412                                 translation       444          36    12.60       4.2e-07
+#4  GO:0009113      purine nucleobase biosynthetic process         7           5     0.20       9.0e-06
+#5  GO:0006419                  alanyl-tRNA aminoacylation         4           3     0.11       8.9e-05
+#6  GO:0009058                        biosynthetic process      2845         109    80.71       0.00042
+#7  GO:0000256                 allantoin catabolic process         6           3     0.17       0.00042
+#8  GO:0000154                           rRNA modification        14           3     0.40       0.00080
+#9  GO:0006481              C-terminal protein methylation         2           2     0.06       0.00080
+#10 GO:0006099                    tricarboxylic acid cycle        27           5     0.77       0.00086
+#11 GO:0055085                     transmembrane transport       422          23    11.97       0.00124
+#12 GO:0005975              carbohydrate metabolic process       490          21    13.90       0.00133
+#13 GO:0006006                   glucose metabolic process        32           4     0.91       0.00233
+#14 GO:0019551 glutamate catabolic process to 2-oxoglut...         3           2     0.09       0.00236
+#15 GO:0001522                     pseudouridine synthesis        21           4     0.60       0.00260
+#16 GO:0019915                               lipid storage         4           2     0.11       0.00464
+#17 GO:0006097                            glyoxylate cycle         5           2     0.14       0.00758
+#18 GO:0006891      intra-Golgi vesicle-mediated transport         5           2     0.14       0.00758
 
 allRes_less <- GenTable(myGOdata_less, classicFisher = resultFisher_less, orderBy = "resultFisher", ranksOf = "classicFisher", topNodes = 10)
 allRes_less
-#GO:0006412 = translation 
+allRes_less_df<- as.data.frame(allRes_less)
+#three significant esults at p <0.01
+#GO.ID                                        Term Annotated Significant Expected classicFisher
+#  GO:0006412                                 translation       444          18     4.68       1.4e-06
+#  GO:0000103                        sulfate assimilation         8           2     0.08        0.0030
+#  GO:0045454                      cell redox homeostasis        10           2     0.11        0.0047
+
+
+allRes_greater_wo <- GenTable(myGOdata_greater_wo, classicFisher = resultFisher_greater_wo, orderBy = "resultFisher", ranksOf = "classicFisher", topNodes = 20)
+allRes_greater_wo
+allRes_greater_wo_df<- as.data.frame(allRes_greater_wo)
+#there are 9 significant results
+#        GO.ID                                        Term Annotated Significant Expected classicFisher
+#1  GO:0055114                 oxidation-reduction process       924          55    18.89       6.1e-14
+#2  GO:0009058                        biosynthetic process      2845          70    58.17       1.0e-04
+#3  GO:0000256                 allantoin catabolic process         6           3     0.12       0.00016
+#4  GO:0000154                           rRNA modification        14           3     0.29       0.00041
+#5  GO:0055085                     transmembrane transport       422          19     8.63       0.00078
+#6  GO:0019551 glutamate catabolic process to 2-oxoglut...         3           2     0.06       0.00123
+#7  GO:0006099                    tricarboxylic acid cycle        27           4     0.55       0.00206
+#8  GO:0006097                            glyoxylate cycle         5           2     0.10       0.00400
+#9  GO:0001522                     pseudouridine synthesis        21           3     0.43       0.00855
+
+allRes_less_wo <- GenTable(myGOdata_less_wo, classicFisher = resultFisher_less_wo, orderBy = "resultFisher", ranksOf = "classicFisher", topNodes = 10)
+allRes_less_wo
+allRes_less_wo_df<- as.data.frame(allRes_less_wo)
+#GO.ID                                        Term Annotated Significant Expected classicFisher
+#1  GO:0045454                      cell redox homeostasis        10           2     0.05        0.0012
+
 
 ##link the GO terms back to the IPR annotations
 #read back in files
@@ -166,10 +268,10 @@ filesnames<- list.files(path ="~/bigdata/Suillus_comp_genomics/All_InterPro/", p
 
 #rename the input speices path to just species
 Interpro_files <- rbindlist(sapply(filesnames, fread, simplify = FALSE),
-                      use.names = TRUE, idcol = "FileName", fill = TRUE)
+                            use.names = TRUE, idcol = "FileName", fill = TRUE)
 Interpro_files2 <- data.frame(lapply(Interpro_files, function(x) {
   sub(".*//|", "", x)
- }))
+}))
 Interpro_files3 <- data.frame(lapply(Interpro_files2, function(x) {
   sub("_Gene.*", "", x)
 }))
@@ -255,8 +357,8 @@ names_in_order<- c("Suibov1",
                    "Sclci1",
                    "Theter1",
                    "Thega1")
-                   
-                   
+
+
 Interpro_table_reshaped_by_greater<- Interpro_table_reshaped_greater[match(names_in_order, rownames(Interpro_table_reshaped_greater)),]                 
 
 #split the datasets
@@ -271,7 +373,7 @@ my.t.test.p.value <- function(...) {
 
 #run the function in place of the t-test call. 
 t_test_results_greater<- Map(my.t.test.p.value,Interpro_for_rendering_Suillus_greater,Interpro_for_rendering_Other_greater)
-length(t_test_results_greater[t_test_results_greater < .0005])
+length(t_test_results_greater[t_test_results_greater < .001])
 
 length(t_test_results_greater[t_test_results_greater == "NA"])
 t_test_results_greater_clean<- t_test_results_greater[t_test_results_greater != "NA"]
@@ -280,7 +382,7 @@ length(t_test_results_greater_clean)
 length(t_test_results_greater_clean[t_test_results_greater_clean == "NA"])
 
 #subset list
-t_test_results_greater_list<- t_test_results_greater_clean[t_test_results_greater_clean < .0005]
+t_test_results_greater_list<- t_test_results_greater_clean[t_test_results_greater_clean < .001]
 length(t_test_results_greater_list)
 t_test_results_greater_list_in_total<- t_test_results_greater_clean[t_test_results_greater_clean < .001]
 length(t_test_results_greater_list_in_total)
@@ -290,7 +392,6 @@ t_test_results_greater_list_to_sort<-unlist(t_test_results_greater_list)
 t_test_results_greater_list_df<- as.data.frame(t_test_results_greater_list_to_sort)
 t_test_results_greater_list_ordered<- t_test_results_greater_list_df[order(t_test_results_greater_list_df$t_test_results_greater_list_to_sort), , drop = FALSE]
 
-
 #subset dataframes for plotting
 Interpro_for_rendering_greater<- Interpro_table_reshaped_by_greater[,names(Interpro_table_reshaped_by_greater) %in% rownames(t_test_results_greater_list_ordered)]
 ncol(Interpro_for_rendering_greater)
@@ -298,48 +399,10 @@ ncol(Interpro_for_rendering_greater)
 Interpro_for_rendering_greater_all<- Interpro_table_reshaped_by_greater[,names(Interpro_table_reshaped_by_greater) %in% names(t_test_results_greater_list_in_total)]
 ncol(Interpro_for_rendering_greater_all)
 
-#get totals for known antioxident's of interest by term 
-peroxidase<- grep("peroxidase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-peroxidase
-Glutathione<- grep("Glutathione", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-Glutathione
-#this is in the subset
-catalase<- grep("catalase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-catalase
-#5, also in the subset
-superoxide<- grep("superoxide", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-superoxide
-#1 of these
-dismutase<- grep("dismutase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-dismutase
-#same 1
-peroxiredoxin<- grep("peroxiredoxin", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-peroxiredoxin
-#1 of these
-thioredoxin<- grep("thioredoxin", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-thioredoxin
-#three of these
-Pyridine_nucleotide_disulphide_oxidoreductase<- grep("Pyridine nucleotide-disulphide oxidoreductase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-Pyridine_nucleotide_disulphide_oxidoreductase
-aldehyde_dehydrogenase<- grep("Aldehyde dehydrogenase", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-aldehyde_dehydrogenase
-glutaredoxin<- grep("glutaredoxin", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-glutaredoxin
-#none
-redoxin<- grep(" redoxin ", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-redoxin
-#none
-methionine_sulfoxide_reductase<- grep("methionine", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-methionine_sulfoxide_reductase
-#maybe Peptide methionine sulphoxide reductase MsrA? 
-thiol<- grep("thiol", colnames(Interpro_for_rendering_greater_all), value = T, ignore.case = T)
-thiol
-#none 
 
 #print for supplemental table 
 write.table(Interpro_for_rendering_greater_all, "IPR_redox.txt", sep="\t", row.names = TRUE, col.names = TRUE, quote = FALSE)
-
-
+dim(Interpro_for_rendering_greater_all)
 ###plot this: 
 
 ##make color gradient 
