@@ -1,4 +1,4 @@
-#processing script for CAFE results files 20.Dec.2019
+#processing script for CAFE results files
 
 #setwd
 setwd("~/Desktop/CAFE_output_Feb_2020")
@@ -50,7 +50,8 @@ Larch_df<- summary[summary$Species %in% Larch_list,]
 
 Suillus_df<- summary[grep("Sui", summary$Species),]
 Other_df<- summary[grep("Sui", summary$Species, invert = TRUE),]
-
+suspects<- suspects<- c("Gyrli1", "Rhivul1", "Rhivi1", "Rhives1", "Rhisa1")
+Other_df_wo<- Other_df[!Other_df$Species %in% suspects,]
 
 
 #add designators and recombine 
@@ -60,9 +61,12 @@ Larch_df$group<- "L"
 
 Suillus_df$group<- "S"
 Other_df$group<- "O"
+Other_df_wo$group<- "O"
 
 Suillus_df2<- rbind(White_df, Red_df, Larch_df)
 Other_df2<- rbind(Suillus_df, Other_df)
+Other_df2_wo<- rbind(Suillus_df, Other_df_wo)
+
 
 ##S vs. O
 #t_test for expansions
@@ -70,15 +74,15 @@ Other_df2<- rbind(Suillus_df, Other_df)
 
 #test for normality
 shapiro.test(as.numeric(Other_df2$sig_Expanded_fams) [Other_df2$group == "S"])
-  #Suillus not normal
+#Suillus not normal
 shapiro.test(as.numeric(log(Other_df2$sig_Expanded_fams)) [Other_df2$group == "S"])
-  #still not normal with log transform
+#still not normal with log transform
 powerTransform(Other_df2$sig_Expanded_fams)
 #recomended -0.9496181
 shapiro.test(as.numeric((Other_df2$sig_Expanded_fams)**-1) [Other_df2$group == "S"])
 
 shapiro.test(as.numeric(Other_df2$sig_Expanded_fams) [Other_df2$group == "O"])
-  #Other is normal, but transform to match 
+#Other is normal, but transform to match 
 shapiro.test(as.numeric((Other_df2$sig_Expanded_fams)**-1) [Other_df2$group == "O"])
 
 Other_df2$sig_Expanded_fams_transform<- Other_df2$sig_Expanded_fams**-1
@@ -95,12 +99,41 @@ O_E<- mean(Other_df$sig_Expanded_fams)
 S_E<- mean(Suillus_df$sig_Expanded_fams)
 #suillus has significantly more gene family expansions
 
+##excluding High and Moderare 
+#test for normality
+shapiro.test(as.numeric(Other_df2_wo$sig_Expanded_fams) [Other_df2_wo$group == "S"])
+#Suillus not normal
+shapiro.test(as.numeric(log(Other_df2_wo$sig_Expanded_fams)) [Other_df2_wo$group == "S"])
+#still not normal with log transform
+powerTransform(Other_df2_wo$sig_Expanded_fams)
+#recomended -0.9496181
+shapiro.test(as.numeric((Other_df2_wo$sig_Expanded_fams)**-1) [Other_df2_wo$group == "S"])
+
+shapiro.test(as.numeric(Other_df2_wo$sig_Expanded_fams) [Other_df2_wo$group == "O"])
+#Other is normal, but transform to match 
+shapiro.test(as.numeric((Other_df2_wo$sig_Expanded_fams)**-1) [Other_df2_wo$group == "O"])
+
+Other_df2_wo$sig_Expanded_fams_transform<- Other_df2_wo$sig_Expanded_fams**-1
+
+
+#test for equal variance 
+var.test(as.numeric(Other_df2_wo$sig_Expanded_fams_transform [Other_df2_wo$group == "S"]), 
+         (as.numeric(Other_df2_wo$sig_Expanded_fams_transform) [Other_df2_wo$group == "O"]))
+#fail to reject, variance is equalish
+
+
+t.test(as.numeric(sig_Expanded_fams_transform) ~ as.character(group), data = Other_df2_wo, var.equal = TRUE)
+O_E<- mean(Other_df_wo$sig_Expanded_fams)
+S_E<- mean(Suillus_df$sig_Expanded_fams)
+#suillus has significantly more gene family expansions
+
+
 #t_test for CONTRACTIONS
 #test for normality
 shapiro.test(as.numeric(Other_df2$sig_Contracted_fams) [Other_df2$group == "S"])
-  #not normal
+#not normal
 shapiro.test(as.numeric(Other_df2$sig_Contracted_fams) [Other_df2$group == "O"])
-  #not normal - need to transform
+#not normal - need to transform
 
 #test for equal variance 
 var.test(as.numeric(Other_df2$sig_Contracted_fams [Other_df2$group == "S"]), 
@@ -126,7 +159,36 @@ O_C<- mean(Other_df$sig_Contracted_fams)
 S_C<- mean(Suillus_df$sig_Contracted_fams)
 #suillus has significantly more gene family contractions too
 
+#removing high and moderate from the dataset
+#t_test for CONTRACTIONS
+#test for normality
+shapiro.test(as.numeric(Other_df2_wo$sig_Contracted_fams) [Other_df2_wo$group == "S"])
+#not normal
+shapiro.test(as.numeric(Other_df2_wo$sig_Contracted_fams) [Other_df2_wo$group == "O"])
+#not normal - need to transform
 
+#test for equal variance 
+var.test(as.numeric(Other_df2_wo$sig_Contracted_fams [Other_df2_wo$group == "S"]), 
+         (as.numeric(Other_df2_wo$sig_Contracted_fams) [Other_df2_wo$group == "O"]))
+#variance not equal. 
+
+#transform 
+Other_df2_wo$log_sig_Contracted_fams<- log(Other_df2_wo$sig_Contracted_fams+1)
+
+
+#did that help?
+#test for normality
+shapiro.test(as.numeric(Other_df2_wo$log_sig_Contracted_fams) [Other_df2_wo$group == "S"])
+shapiro.test(as.numeric(Other_df2_wo$log_sig_Contracted_fams) [Other_df2_wo$group == "O"])
+#yep, normal-ish now. 
+#retest var.
+var.test(as.numeric(Other_df2_wo$log_sig_Contracted_fams [Other_df2_wo$group == "S"]), 
+         (as.numeric(Other_df2_wo$log_sig_Contracted_fams) [Other_df2_wo$group == "O"]))
+#variance not equal. 
+
+t.test(as.numeric(log_sig_Contracted_fams) ~ as.character(group), data = Other_df2_wo, var = FALSE)
+O_C<- mean(Other_df_wo$sig_Contracted_fams)
+S_C<- mean(Suillus_df$sig_Contracted_fams)
 
 #make figure:
 ## S vs. O
@@ -483,17 +545,17 @@ Larch_C_table$Larch_C_cleaner2<- levels(droplevels(Larch_C_table$Larch_C_cleaner
 
 
 #do this for R/W/L as well- are there rapid fam expansions / contractions that are specific to R/W/L?
-  #red
+#red
 white_and_larch_contracted<- c(White_C_table$White_C_cleaner2, Larch_C_table$Larch_C_cleaner2)
 white_and_larch_contracted<-unique(white_and_larch_contracted)
 Red_exclsuive_contractions<-Red_C_table[! Red_C_table$Red_C_cleaner2 %in% white_and_larch_contracted,]
-  
-  #white
+
+#white
 red_and_larch_contracted<- c(Red_C_table$Red_C_cleaner2, Larch_C_table$Larch_C_cleaner2)
 red_and_larch_contracted<-unique(red_and_larch_contracted)
 White_exclsuive_contractions<-White_C_table[! White_C_table$White_C_cleaner2 %in% red_and_larch_contracted,]
 
-  #larch
+#larch
 red_and_white_contracted<- c(Red_C_table$Red_C_cleaner2, White_C_table$White_C_cleaner2)
 red_and_white_contracted<-unique(red_and_white_contracted)
 Larch_exclsuive_contractions<-Larch_C_table[! Larch_C_table$Larch_C_cleaner2 %in% red_and_white_contracted,]
@@ -504,17 +566,17 @@ White_E_table$White_E_cleaner2<- levels(droplevels(White_E_table$White_E_cleaner
 Red_E_table$Red_E_cleaner2<- levels(droplevels(Red_E_table$Red_E_cleaner2))
 Larch_E_table$Larch_E_cleaner2<- levels(droplevels(Larch_E_table$Larch_E_cleaner2))
 
-  #red
+#red
 white_and_larch_expanded<- c(White_E_table$White_E_cleaner2, Larch_E_table$Larch_E_cleaner2)
 white_and_larch_expanded<-unique(white_and_larch_expanded)
 Red_exclsuive_expansions<-Red_E_table[! Red_E_table$Red_E_cleaner2 %in% white_and_larch_expanded,]
 
-  #white
+#white
 red_and_larch_expanded<- c(Red_E_table$Red_E_cleaner2, Larch_E_table$Larch_E_cleaner2)
 red_and_larch_expanded<-unique(red_and_larch_expanded)
 White_exclsuive_expansions<-White_E_table[! White_E_table$White_E_cleaner2 %in% red_and_larch_expanded,]
 
-  #larch
+#larch
 red_and_white_expanded<- c(Red_E_table$Red_E_cleaner2, White_E_table$White_E_cleaner2)
 red_and_white_expanded<-unique(red_and_white_expanded)
 Larch_exclsuive_expansions<-Larch_E_table[! Larch_E_table$Larch_E_cleaner2 %in% red_and_white_expanded,]
@@ -546,4 +608,3 @@ row.names(contracted_genes_in_ea_fam)<- Suillus_C_ordered
 #print off the gene files of interst for each family expansion / contraction 
 write.table(expanded_genes_in_ea_fam, "expanded_genes_in_ea_fam.txt", sep="\t", row.names = TRUE, col.names = FALSE, quote = FALSE)
 write.table(contracted_genes_in_ea_fam, "contracted_genes_in_ea_fam.txt", sep="\t", row.names = TRUE, col.names = FALSE, quote = FALSE)
-
