@@ -19,6 +19,7 @@ SMC_traits<-read.table(file ="AS5_outputs.csv", header = TRUE, sep = ",")
 GPCR_traits<- read.table(file ="GPCR_totals.csv", header = TRUE, sep = ",")
 GPCR_traits$total<- rowSums(GPCR_traits[5:ncol(GPCR_traits)],)
 
+
 #make the .phylo file
 #read in the tree
 nexus<- tree<- "((((((((((((((((((Suivar1:0.010372,Suitom1:0.006211):0.001161,(Suihi1:0.009804,Suifus1:0.009871):0.001006):0.003248,Suiplo1:0.010465):0.00292,Suidis1:0.010283):0.018954,Suibov1:0.042762):0.011931,(((((Suisubl1:0.010257,Suisu1:0.015162):0.013213,Suiame1:0.020213):0.003498,Suisub1:0.0274):0.003311,Suicot1:0.032812):0.00549,(Suipic1:0.020678,Suidec1:0.01842):0.024794):0.003182):0.0023,(Suigr1:0.01368,Suipla1:0.010526):0.016982):0.002008,((Suilu4:0.010432,Suiocc1:0.016253):0.004298,Suibr2:0.011667):0.022327):0.010157,Suilak1:0.033981):0.008243,Suicli1:0.034744):0.017466,(Suipal1:0.037565,Suiamp1:0.034194):0.010046):0.025448,((((Rhivi1:0.013169,Rhives1:0.018102):0.028885,Rhivul1:0.057818):0.006656,Rhisa1:0.051235):0.007496,Rhitru1:0.079972):0.022267):0.113665,(((Pismi1:0.067099,Pisti1:0.055341):0.081864,Sclci1:0.12731):0.085541,(Paxin1:0.06372,Gyrli1:0.062439):0.081453):0.055982):0.104422,Pilcr1:0.205084):0.029249,(((Lacam2:0.030668,Lacbi2:0.031522):0.145046,Hebcy2:0.199426):0.059435,Amamu1:0.281571):0.070896):0.042081,((Theter1:0.080412,Thega1:0.073159):0.28376,(Ruscom1:0.087985,Rusbre1:0.092679):0.251688):0.035305):0.111335,(Hydru2:0.235556,Cananz1:0.352162):0.263901):0.092299,(Gaumor1:0.166361,Hyssto1:0.187679):0.092299);"
@@ -67,6 +68,12 @@ names(GPCRs) = GPCR_traits$JGI_project_code
 #order the trait values to match the tree order
 GPCRs<- GPCRs[row.names(tre.w.names_coph)]
 
+#set gorups
+groups<- SSP_traits$treatment
+names(groups) = SSP_traits$JGI_project_code
+#order the trait values to match the tree order
+groups<- groups[row.names(tre.w.names_coph)]
+
 
 ###phylosgignal graphs for local autocorrelation
 #create a dataframe of the three SSP traits 
@@ -97,7 +104,7 @@ barplot.phylo4d(SSP_input.p4d_named, bar.col=points.col,
                 trait.bg.col = "white",
                 grid.vertical = FALSE,
                 grid.horizontal = FALSE,
-                bar.lwd = 3.5,
+                bar.lwd = 5,
                 rotate.tree = 90)
 
 #compute lipaMoran I -SMC
@@ -115,7 +122,7 @@ barplot.phylo4d(SMC_input.p4d_named, bar.col=points.col,
                 trait.bg.col = "white",
                 grid.vertical = FALSE,
                 grid.horizontal = FALSE,
-                bar.lwd = 3.5)
+                bar.lwd = 5)
 
 #compute lipaMoran I -GPCRs
 GPCR.lipa <- lipaMoran(GPCR_input.p4d_named, reps = 10000)
@@ -275,7 +282,9 @@ phyloSignal(SMC_input.p4d_named, methods = "K", reps = 10000)
 #GPCRs
 phyloSignal(GPCR_input.p4d_named, methods = "K", reps = 10000)
 
-help(phyloSignal)
+
+
+
 #make tree ultimetric for pgls analysis 
 library(phangorn) 
 force.ultrametric<-function(tree,method=c("nnls","extend")){
@@ -302,47 +311,216 @@ plot(tre.w.names_ultra)
 SSP_df<- data.frame(names= names(SSP), SSP, groups)
 cdat_SSP<- comparative.data(data=SSP_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
 #pgls from caper
-SSP_mod <- pgls(formula = SSP ~ groups, data = cdat_SSP, lambda='ML', kappa = 1.2)
+SSP_mod<- pgls(formula = SSP ~ groups, data = cdat_SSP, lambda='ML')
 summary(SSP_mod)
+#NS: F-statistic: 2.659 on 1 and 44 DF,  p-value: 0.1101
+#AIC(SSP_mod)
+resid_ssp<- data.frame(resid(SSP_mod))
+resid_ssp_phylo<- phylo4d(tre.w.names, resid_ssp$resid.SSP_mod.)
+phyloSignal(resid_ssp_phylo, methods = "K", reps = 10000)
+
+
 
 ##SSSP
 SSSP_df<- data.frame(names= names(SSSP), SSSP, groups)
 cdat_SSSP<- comparative.data(data=SSSP_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
 #pgls from caper
-SSSP_mod <- pgls(formula = SSSP ~ groups, data = cdat_SSSP, lambda='ML', kappa = 1.2)
+SSSP_mod<- pgls(formula = SSSP ~ groups, data = cdat_SSSP, lambda='ML')
+#SSSP_mod_lambda_kapa_delta  is lowest
 summary(SSSP_mod)
+#F-statistic: 0.03894 on 1 and 44 DF,  p-value: 0.8445 
+resid_sssp<- data.frame(resid(SSSP_mod))
+resid_sssp_phylo<- phylo4d(tre.w.names, resid_sssp$resid.SSSP_mod.)
+phyloSignal(resid_sssp_phylo, methods = "K", reps = 10000)
+
 
 ##percent SSSP of SSP
 SSSP_percent_df<- data.frame(names= names(percentSSSPoutofSSP), percentSSSPoutofSSP, groups)
 cdat_SSSP_percent<- comparative.data(data=SSSP_percent_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
 #pgls from caper
-SSSP_percent_mod <- pgls(formula = percentSSSPoutofSSP ~ groups, data = cdat_SSSP_percent, lambda='ML', kappa = 1.2)
-summary(SSSP_mod)
+SSSP_percent_mod<- pgls(formula = percentSSSPoutofSSP ~ groups, data = cdat_SSSP_percent, lambda='ML')
+#Choose model
+summary(SSSP_percent_mod)
+#NS: F-statistic: 0.829 on 1 and 44 DF,  p-value: 0.3675 
 
 #SMC_all
 SMC_all_df<- data.frame(names= names(SMC_all), SMC_all, groups)
 cdat_SMC_all<- comparative.data(data=SMC_all_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
 #pgls from caper
-SMC_all_mod <- pgls(formula = SMC_all ~ groups, data = cdat_SMC_all,  lambda='ML', kappa = 1.2)
+SMC_all_mod<- pgls(formula = SMC_all ~ groups, data = cdat_SMC_all, lambda='ML')
 summary(SMC_all_mod)
+#NS: F-statistic: 2.467 on 1 and 44 DF,  p-value: 0.1234 
+
+# calculate K of residuals
+resid_SMC<- data.frame(resid(SMC_all_mod))
+resid_SMC_phylo<- phylo4d(tre.w.names, resid_SMC$resid.SMC_all_mod.)
+phyloSignal(resid_SMC_phylo, methods = "K", reps = 10000)
+
 
 #terp
 SMC_terp_df<- data.frame(names= names(SMC_terp), SMC_terp, groups)
 cdat_terp<- comparative.data(data=SMC_terp_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
 #pgls from caper
-terp_mod <- pgls(formula = SMC_terp ~ groups, data = cdat_terp,  lambda='ML', kappa = 1.2)
+terp_mod <- pgls(formula = SMC_terp ~ groups, data = cdat_terp,  lambda='ML')
 summary(terp_mod)
+#significant: F-statistic: 6.145 on 1 and 44 DF,  p-value: 0.01708 
+# calculate K of residuals
+resid_terp<- data.frame(resid(terp_mod))
+resid_terp_phylo<- phylo4d(tre.w.names, resid_terp$resid.terp_mod.)
+phyloSignal(resid_terp_phylo, methods = "K", reps = 10000)
+
+
 
 #nrps_like
 nrps_df<- data.frame(names= names(SMC_NRPS_like), SMC_NRPS_like, groups)
 cdat_nrps<- comparative.data(data=nrps_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
 #pgls from caper
-nrps_mod <- pgls(formula = SMC_NRPS_like ~ groups, data = cdat_SMC,  lambda='ML', kappa = 1.2)
+nrps_mod <- pgls(formula = SMC_NRPS_like ~ groups, data = cdat_nrps,  lambda='ML')
 summary(nrps_mod)
+#significant: F-statistic: 5.955 on 1 and 44 DF,  p-value: 0.01878 
+resid_nrps<- data.frame(resid(nrps_mod))
+resid_nrps_phylo<- phylo4d(tre.w.names, resid_nrps$resid.nrps_mod.)
+phyloSignal(resid_nrps_phylo, methods = "K", reps = 10000)
+
 
 #gpcr
 gpcr_df<- data.frame(names= names(GPCRs), GPCRs, groups)
 cdat_gpcr<- comparative.data(data=gpcr_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
 #pgls from caper
-gpcr_mod <- pgls(formula = GPCRs ~ groups, data = cdat_gpcr,  lambda='ML', kappa = 1.2)
+gpcr_mod <- pgls(formula = GPCRs ~ groups, data = cdat_gpcr,  lambda='ML')
 summary(gpcr_mod)
+#not significant: F-statistic: 0.1227 on 1 and 44 DF,  p-value: 0.7278 
+resid_gpcr<- data.frame(resid(gpcr_mod))
+resid_gpcr_phylo<- phylo4d(tre.w.names, resid_gpcr$resid.gpcr_mod.)
+phyloSignal(resid_gpcr_phylo, methods = "K", reps = 10000)
+
+
+#get std for table
+#all SMCs
+std <- function(x) sd(x)/sqrt(length(x))
+SMC_traits_S<- SMC_traits[SMC_traits$treatment == "S",]
+std_S_SMCs<- std(SMC_traits_S$total_BSG_clusters)
+SMC_traits_O<- SMC_traits[SMC_traits$treatment == "O",]
+std_S_SMCs<- std(SMC_traits_O$total_BSG_clusters)
+  
+SMC_traits_red<- SMC_traits_S[SMC_traits_S$host == "R",]
+std_SMC_traits_red<- std(SMC_traits_red$total_BSG_clusters)
+
+SMC_traits_white<- SMC_traits_S[SMC_traits_S$host == "W",]
+std_SMC_traits_white<- std(SMC_traits_white$total_BSG_clusters)
+
+SMC_traits_larch<- SMC_traits_S[SMC_traits_S$host == "L",]
+std_SMC_traits_larch<- std(SMC_traits_larch$total_BSG_clusters)
+
+#terpenes
+SMC_traits_S<- SMC_traits[SMC_traits$treatment == "S",]
+std_S_SMCs<- std(SMC_traits_S$Terpene)
+mean(SMC_traits_S$Terpene)
+SMC_traits_O<- SMC_traits[SMC_traits$treatment == "O",]
+std_O_SMCs<- std(SMC_traits_O$Terpene)
+mean(SMC_traits_O$Terpene)
+
+SMC_traits_red<- SMC_traits_S[SMC_traits_S$host == "R",]
+std_SMC_traits_red<- std(SMC_traits_red$Terpene)
+mean(SMC_traits_red$Terpene)
+
+SMC_traits_white<- SMC_traits_S[SMC_traits_S$host == "W",]
+std_SMC_traits_white<- std(SMC_traits_white$Terpene)
+mean(SMC_traits_white$Terpene)
+
+SMC_traits_larch<- SMC_traits_S[SMC_traits_S$host == "L",]
+std_SMC_traits_larch<- std(SMC_traits_larch$Terpene)
+mean(SMC_traits_larch$Terpene)
+std <- function(x) sd(x)/sqrt(length(x))
+
+#NRPS.likes
+SMC_traits_S<- SMC_traits[SMC_traits$treatment == "S",]
+std_S_SMCs<- std(SMC_traits_S$NRPS.like)
+mean(SMC_traits_S$NRPS.like)
+SMC_traits_O<- SMC_traits[SMC_traits$treatment == "O",]
+std_O_SMCs<- std(SMC_traits_O$NRPS.like)
+mean(SMC_traits_O$NRPS.like)
+
+SMC_traits_red<- SMC_traits_S[SMC_traits_S$host == "R",]
+std_SMC_traits_red<- std(SMC_traits_red$NRPS.like)
+mean(SMC_traits_red$NRPS.like)
+
+SMC_traits_white<- SMC_traits_S[SMC_traits_S$host == "W",]
+std_SMC_traits_white<- std(SMC_traits_white$NRPS.like)
+mean(SMC_traits_white$NRPS.like)
+
+SMC_traits_larch<- SMC_traits_S[SMC_traits_S$host == "L",]
+std_SMC_traits_larch<- std(SMC_traits_larch$NRPS.like)
+mean(SMC_traits_larch$NRPS.like)
+
+
+#get stats without "High" and "Moderate" in Other ECM
+#need new tree without the given species 
+#high:"Gyrli1" "Rhives1" "Rhivi1"
+#moderate: "Rhivul1", Rhisa1
+suspects<- c("Gyrli1", "Rhivul1", "Rhivi1", "Rhives1", "Rhisa1")
+#shrink tree
+tre.w.names_ultra_no_suspects<- drop.tip(phy = tre.w.names_ultra, tip = suspects, trim.internal = TRUE, subtree = FALSE,
+         root.edge = 0, rooted = is.rooted(tre.w.names_ultra), collapse.singles = TRUE,
+         interactive = FALSE)
+
+
+##SSP
+#remove suspects
+SSP_df_wo_suspects<- SSP_df[!rownames(SSP_df) %in% suspects,]
+cdat_SSP<- comparative.data(data=SSP_df_wo_suspects, phy=tre.w.names_ultra_no_suspects, names.col="names", vcv=TRUE, vcv.dim=3)
+#pgls from caper
+SSP_mod <- pgls(formula = SSP ~ groups, data = cdat_SSP, lambda='ML')
+summary(SSP_mod)
+#not significant
+
+##SSSP
+#remove suspects
+SSSP_df_wo_suspects<- SSSP_df[!rownames(SSSP_df) %in% suspects,]
+cdat_SSSP<- comparative.data(data=SSSP_df_wo_suspects, phy=tre.w.names_ultra_no_suspects, names.col="names", vcv=TRUE, vcv.dim=3)
+#pgls from caper
+SSSP_mod <- pgls(formula = SSSP ~ groups, data = cdat_SSSP, lambda='ML')
+summary(SSSP_mod)
+#not significant 
+
+##SMC_all
+#remove suspects
+SMC_all_df_wo_suspects<- SMC_all_df[!rownames(SMC_all_df) %in% suspects,]
+cdat_SMC_all<- comparative.data(data=SMC_all_df_wo_suspects, phy=tre.w.names_ultra_no_suspects, names.col="names", vcv=TRUE, vcv.dim=3)
+#pgls from caper
+SMC_all_mod <- pgls(formula = SMC_all ~ groups, data = cdat_SMC_all, lambda='ML')
+summary(SMC_all_mod)
+#not significant overall
+
+##SMC_terp
+#remove suspects
+SMC_terp_df_wo_suspects<- SMC_terp_df[!rownames(SMC_terp_df) %in% suspects,]
+cdat_SMC_terp<- comparative.data(data=SMC_terp_df_wo_suspects, phy=tre.w.names_ultra_no_suspects, names.col="names", vcv=TRUE, vcv.dim=3)
+#pgls from caper
+SMC_terp_mod <- pgls(formula = SMC_terp ~ groups, data = cdat_SMC_terp, lambda='ML')
+summary(SMC_terp_mod)
+#Residual standard error: 9.692 on 39 degrees of freedom
+#Multiple R-squared: 0.4275,	Adjusted R-squared: 0.4128 
+#F-statistic: 29.12 on 1 and 39 DF,  p-value: 3.567e-06 
+
+##SMC_nrps
+#remove suspects
+SMC_nrps_df_wo_suspects<- nrps_df[!rownames(nrps_df) %in% suspects,]
+cdat_SMC_nrps<- comparative.data(data=SMC_nrps_df_wo_suspects, phy=tre.w.names_ultra_no_suspects, names.col="names", vcv=TRUE, vcv.dim=3)
+#pgls from caper
+SMC_nrps_mod <- pgls(formula = SMC_NRPS_like ~ groups, data = cdat_SMC_nrps, lambda='ML')
+summary(SMC_nrps_mod)
+#Residual standard error: 5.149 on 39 degrees of freedom
+#Multiple R-squared: 0.2241,	Adjusted R-squared: 0.2042 
+#F-statistic: 11.27 on 1 and 39 DF,  p-value: 0.001771 
+
+
+##gpcr
+#remove suspects
+gpcr_df_wo_suspects<- gpcr_df[!rownames(gpcr_df) %in% suspects,]
+cdat_gpcr<- comparative.data(data=gpcr_df_wo_suspects, phy=tre.w.names_ultra_no_suspects, names.col="names", vcv=TRUE, vcv.dim=3)
+#pgls from caper
+gpcr_mod <- pgls(formula = GPCRs ~ groups, data = cdat_gpcr, lambda='ML')
+summary(gpcr_mod)
+#not significant
+
