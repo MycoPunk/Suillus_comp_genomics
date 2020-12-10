@@ -2,7 +2,7 @@
 #with special interest in the role of Auxiliary Activitie groups, putative involved in SOM oxidation.
 
 #set wd
-setwd("~/Desktop/")
+#setwd("")
 
 #set libraries
 library(phylosignal)
@@ -17,6 +17,8 @@ library(tidyr)
 library(dplyr)
 library(phangorn) 
 library(tidyverse)
+library(RColorBrewer)
+library(viridis)
 
 #set seed for reproducibility
 set.seed(666)
@@ -218,8 +220,8 @@ CAZy_traits_ordered_no_suspects<- CAZy_traits_ordered[!CAZy_traits_ordered$JGI_p
 groups_no_suspects<- groups[!names(groups) %in% suspects]
 #remove suspects from tree
 tre.w.names_no_suspects<- drop.tip(tre.w.names, suspects, trim.internal = TRUE, subtree = FALSE,
-                              root.edge = 0, collapse.singles = TRUE,
-                              interactive = FALSE)
+                                   root.edge = 0, collapse.singles = TRUE,
+                                   interactive = FALSE)
 #make cophenetic matrix
 tre.w.names_no_suspects_coph<- cophenetic(tre.w.names_no_suspects)
 #make tree ultametric
@@ -237,8 +239,8 @@ CAZy_traits_ordered_no_suspects3<- data.frame(CAZy_traits_ordered_no_suspects2)
 CAZy_traits_ordered_no_suspects3_t<- t(CAZy_traits_ordered_no_suspects3)
 #split the df by row into a list of lists
 data_list_ns <- setNames(split(CAZy_traits_ordered_no_suspects3_t,
-                            seq(nrow(CAZy_traits_ordered_no_suspects3_t))),
-                      rownames(CAZy_traits_ordered_no_suspects3_t))
+                               seq(nrow(CAZy_traits_ordered_no_suspects3_t))),
+                         rownames(CAZy_traits_ordered_no_suspects3_t))
 #name each element in the list
 data_list_named_ns<- lapply(data_list_ns, function(x) setNames(x, CAZy_traits_ordered_no_suspects_again$JGI_project_code))
 
@@ -290,25 +292,25 @@ for (j in 1:length(list_of_mod_ns)){
 #if you're only looking at AA's this isn't hard to do and will reduce the chance to running into this model error
 
 #name ea. df in the list of dfs
-names(list_of_mod_ns) = names(data_list_named_ns)
+#names(list_of_mod_ns) = names(data_list_named_ns)
 
 
 #extract p-values 
-list_of_p_vals<- vector(mode = "list", length = length(data_list_named))
-for (j in 1:length(list_of_p_vals)){
-  for (i in list_of_mod[j]){
-    pval_ea<- i$coefficients[2,4]
-    list_of_p_vals[[j]]<- pval_ea
-  }}
+#list_of_p_vals<- vector(mode = "list", length = length(data_list_named))
+#for (j in 1:length(list_of_p_vals)){
+#  for (i in list_of_mod[j]){
+#    pval_ea<- i$coefficients[2,4]
+#    list_of_p_vals[[j]]<- pval_ea
+#  }}
 #name ea. df in the list of dfs
-names(list_of_p_vals) = names(data_list_named)
+#names(list_of_p_vals) = names(data_list_named)
 
 #how many are significant?
-length(list_of_p_vals[list_of_p_vals <.05])
+#length(list_of_p_vals[list_of_p_vals <.05])
 #there are 28 that are significantly different
 
 #the different ones:
-different_between_SandO<- list_of_p_vals[list_of_p_vals <.05]
+#different_between_SandO<- list_of_p_vals[list_of_p_vals <.05]
 
 ##make a heatmap for the CAZy's that are  significantly different 
 sig_diff_names<- names(different_between_SandO) 
@@ -317,19 +319,6 @@ sig_diff_names2<-sig_diff_names[unlist(sig_diff_names) != "GH"]
 #subset the input to just these results:
 CAZy_traits3_significant<- CAZy_traits3[,colnames(CAZy_traits3) %in% sig_diff_names2]
 
-#slide that over to GHs
-p_sig <-  gheatmap(p8, CAZy_traits3_significant, 
-                 offset=0.3, 
-                 width=2, 
-                 low="white", 
-                 high="black", 
-                 colnames_position = "top", 
-                 font.size=1.5,
-                 colnames_angle=45,
-                 colnames_offset_y = 1)
-
-# plot
-plot(p_sig)
 
 #in color useing pheatmap
 #order the dataframe 
@@ -390,8 +379,6 @@ pheatmap(CAZy_traits3_significant_ordered,
          cluster_cols = TRUE,
          scale = "column",
          color = inferno(100),
-         #color = colfunc(100),
-         #breaks = 1)
          border_color = NA,
          cellheight=5,cellwidth=5,
          display_numbers = CAZy_traits3_significant_ordered)
