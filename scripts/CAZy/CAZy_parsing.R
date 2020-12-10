@@ -106,37 +106,6 @@ barplot.phylo4d(CAZy_input.p4d_named, bar.col=points.col,
                 bar.lwd = 5,
                 rotate.tree = 90)
 
-
-
-
-
-
-###compute phylogenetic signal at each internal node using phyloSignalINT()
-#CAZy
-#CAZylike_internal_node<- phyloSignalINT(CAZy_input.p4d_named, trait = names(tipData(CAZy_input.p4d_named))[1], method = "K",
-#                                       reps = 1000, W = NULL)
-
-#CAZylike_node<- tdata(CAZylike_internal_node, "internal")[3]
-#make is a named list
-#CAZylike_node_list<- CAZylike_node$pvalue.K.CAZy
-#names(CAZylike_node_list) <- rownames(CAZylike_node)
-#reduce significant figures
-#CAZylike_node_list<-round(CAZylike_node_list, digits = 4)
-#plot
-#plot(tre.w.names, cex = 0.5)
-
-#for (i in 1:length(CAZylike_node_list)){
-#  if (CAZylike_node_list[i] < 0.01) 
-#  {
-#    nodelabels(CAZylike_node_list[[i]],as.integer(names(CAZylike_node_list[i])), cex = 0.3, bg="white", frame="c")
-#  }
-#}
-
-
-###calculate Bloomberg's of the overall phylogeny using phylosignal
-#CAZy
-#phyloSignal(CAZy_input.p4d_named, methods = "K", reps = 10000)
-
 #make tree ultimetric for pgls analysis 
 force.ultrametric<-function(tree,method=c("nnls","extend")){
   method<-method[1]
@@ -154,234 +123,16 @@ force.ultrametric<-function(tree,method=c("nnls","extend")){
 }
 
 tre.w.names_ultra = force.ultrametric(tre.w.names)
-plot(tre.w.names_ultra)
 
 
-##AA PGLS
-AA_df<- data.frame(names= names(AA), AA, groups)
-cdat_AA<- comparative.data(data=AA_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
-#pgls from caper
-AA_mod<- pgls(formula = AA ~ groups, data = cdat_AA, lambda='ML')
-summary(AA_mod)
-#NS: F-statistic: 2.659 on 1 and 44 DF,  p-value: 0.1101
-#AIC(CAZy_mod)
-resid_CAZy<- data.frame(resid(CAZy_mod))
-resid_CAZy_phylo<- phylo4d(tre.w.names, resid_CAZy$resid.CAZy_mod.)
-phyloSignal(resid_CAZy_phylo, methods = "K", reps = 10000)
-
-
-
-###create heat map of AA 
-library(RColorBrewer)
-library(viridis)
-
-CAZy_traits2<-as.matrix(CAZy_traits[,4:ncol(CAZy_traits)])
-row.names(CAZy_traits2)<- CAZy_traits$JGI_project_code
-
-#is.na(CAZy_traits2) %>% table()
-#dim(CAZy_traits2)
-#View(CAZy_traits2)
-###YOU ARE HERE - NEED TO REMOVE HIDDEN NAs
-#sum(rowSums(CAZy_traits2) == 0)
-
-
-#pheatmap(CAZy_traits2, 
-#         angle_col = "315", 
-#         fontsize = 3,
-#         cluster_rows= FALSE,
-#         cluster_cols = TRUE,
-#         #scale = "column",
-#         color = inferno(100))
-#         #color = colfunc(100),
-#         #breaks = 1,
-#         border_color = NA,
-#         cellheight=5,cellwidth=5)
-#         #display_numbers = Interpro_for_rendering_greater,
-
-
-#help(pheatmap)
-#order the df to match the tree
-#CAZy_traits2
-CAZy_traits3<- data.frame(CAZy_traits2)
-CAZy_traits4<-CAZy_traits3[match(tre.w.names$tip.label, rownames(CAZy_traits3)),]
-#check
-rownames(CAZy_traits4)
-rownames(CAZy_traits3)
-
-
-
-
-###
-#plot tree
-p <- ggtree(tre.w.names) + 
-  geom_tiplab(size=2)
-
-#map value onto tree
-library(ggnewscale)
-p2 <- p + new_scale_fill()
-gheatmap(p2, CAZy_traits4[,1:17], offset=.4, width=4,
-         colnames_angle=90, colnames_offset_y = .35, color = NULL, font.size = 2) +
-  scale_fill_viridis_c(option="A", name="abundance", aesthetics = "fill", guide = "coloursteps")
-
-
-
-#try this:
-# basic plot
-p8 <- ggtree(tre.w.names) + 
-  #xlim(0, 125) +
-  geom_tiplab(size=2, offset=0) 
-
-# add heatmap
-#for auxiluary only
-p9 <-  gheatmap(p8, CAZy_traits4[,2:21], 
-                offset=0.3, 
-                width=2, 
-                low="white", 
-                high="black", 
-                colnames_position = "top", 
-                font.size=1.5,
-                colnames_angle=45,
-                colnames_offset_y = 1)
-
-# plot
-plot(p9)
-
-#slide that over to GHs
-p10 <-  gheatmap(p8, CAZy_traits4[,162:172], 
-                offset=0.3, 
-                width=2, 
-                low="white", 
-                high="black", 
-                colnames_position = "top", 
-                font.size=1.5,
-                colnames_angle=45,
-                colnames_offset_y = 1)
-
-# plot
-plot(p10)
-
-#run iterative t-test on all columns 
-##get significantly different domains
-#Rewrite to get only the domains significantly GREATER in Suillus
-my.t.test.p.value <- function(...) {
-  obj<-try(t.test(..., alternative = 'greater'), silent=TRUE)
-  if (is(obj, "try-error")) return(NA) else return(obj$p.value)
-}
-
-#split datasets
-CAZy_for_rendering_Suillus<- CAZy_traits4[grep("Sui", rownames(CAZy_traits4)),]
-CAZy_for_rendering_Other<- CAZy_traits4[grep("Sui", rownames(CAZy_traits4), invert = TRUE),]
-
-#run the function in place of the t-test call. 
-t_test_results_greater<- Map(my.t.test.p.value,CAZy_for_rendering_Suillus,CAZy_for_rendering_Other)
-length(t_test_results_greater[t_test_results_greater < .001])
-t_test_results_greater[t_test_results_greater < .001]
-
-
-
-##Try phylogenetic anova? 
-#set groups 
-groups_factor_list<- as.factor(setNames(CAZy_traits$treatment, CAZy_traits$JGI_project_code))
-
-#AA
-AA_factor_list<- setNames(CAZy_traits4$AA, CAZy_traits$JGI_project_code)
-phylANOVA(tre.w.names, groups_factor_list, AA_factor_list, nsim=1000, posthoc=TRUE, p.adj="holm")
-
-
-
-
-#step 1: 
-#make list of lists (of named count data)
-#transform
-CAZy_traits4_t<- t(CAZy_traits4)
-#split the df by row into a list of lists
-data_list <- setNames(split(CAZy_traits4_t,
-                            seq(nrow(CAZy_traits4_t))),
-                      rownames(CAZy_traits4_t))
-#name each element in the list
-data_list_named<- lapply(data_list, function(x) setNames(x, CAZy_traits$JGI_project_code))
-
-#test
-#test_1<- setNames(CAZy_traits4$AA9, CAZy_traits$JGI_project_code)
-#sum(data_list_named$AA9 == test_1)# works!
-
-#instantiate lists to hold the output
-test_output<- list()
-pvals_list<- list()
-
-#run function to run phylogenetic anova on each CAZy
-for (i in data_list_named){
-test_output<- phylANOVA(tre.w.names, groups_factor_list, i, nsim=1000, posthoc=TRUE, p.adj="holm")
-print(test_output$Pf)
-pvals_list <- append(pvals_list, test_output$Pf)
-
-}
-
-# set names for the CAZy's
-p_val_named<- setNames(pvals_list, names(data_list_named))
-
-#how many are significant?
-p_val_named[p_val_named <.05]
-#none!
-
-
-
-
-
-#remove suspects and see if anything is significant 
-suspects<- c("Gyrli1", "Rhivul1", "Rhivi1", "Rhives1", "Rhisa1")
-CAZy_traits4_no_suspects<- CAZy_traits4[!rownames(CAZy_traits4) %in% suspects, ]
-
-CAZy_traits4_t<- t(CAZy_traits4_no_suspects)
-#split the df by row into a list of lists
-data_list <- setNames(split(CAZy_traits4_t,
-                            seq(nrow(CAZy_traits4_t))),
-                      rownames(CAZy_traits4_t))
-#name each element in the list
-data_list_named<- lapply(data_list, function(x) setNames(x, CAZy_traits4_no_suspects$JGI_project_code))
-
-#test
-#test_1<- setNames(CAZy_traits4$AA9, CAZy_traits$JGI_project_code)
-#sum(data_list_named$AA9 == test_1)# works!
-
-#instantiate lists to hold the output
-test_output<- list()
-pvals_list_no_suspsects<- list()
-groups_factor_list_no_suspects<- groups_factor_list[!names(groups_factor_list) %in% suspects]
-tre.w.names_subset<- drop.tip(tre.w.names, suspects, trim.internal = TRUE, subtree = FALSE,
-                              root.edge = 0, collapse.singles = TRUE,
-                              interactive = FALSE)
-
-
-#run function to run phylogenetic anova on each CAZy
-for (i in data_list_named){
-  test_output<- phylANOVA(tre.w.names_subset, groups_factor_list_no_suspects, i, nsim=1000, posthoc=TRUE, p.adj="holm")
-  print(test_output$Pf)
-  pvals_list_no_suspsects <- append(pvals_list_no_suspsects, test_output$Pf)
-  
-}
-
-# set names for the CAZy's
-p_val_named_no_suspects<- setNames(pvals_list_no_suspsects, names(data_list_named))
-
-#how many are significant?
-p_val_named[p_val_named <.05]
-
-#note do you need to reorder the data to match the tree again since removing the "suspect" nodes?
-
-
-
-
-#do this over with PGLS 
-##PGLS
+##PGLS on all 
 #step 1 sort the main traits df
 CAZy_traits_ordered<-CAZy_traits[match(row.names(tre.w.names_coph), CAZy_traits$JGI_project_code),]
 
 #sort groups too 
 groups_ordered<- groups[row.names(tre.w.names_coph)]
 
-##YOU ARE HERE 
-
+#format the dataframe
 CAZy_traits2<-as.matrix(CAZy_traits_ordered[,4:ncol(CAZy_traits_ordered)])
 row.names(CAZy_traits2)<- CAZy_traits_ordered$JGI_project_code
 CAZy_traits3<- data.frame(CAZy_traits2)
@@ -400,9 +151,9 @@ data_list_named<- lapply(data_list, function(x) setNames(x, CAZy_traits_ordered$
 CAZY_df<- data.frame()
 CAZY_df_list<- vector(mode = "list", length = length(data_list_named))
 for (j in 1:length(data_list_named)){
-for (i in data_list_named[j]){
-  CAZY_df <-  data.frame(names= names(i), i, groups)
-CAZY_df_list[[j]]<- CAZY_df
+  for (i in data_list_named[j]){
+    CAZY_df <-  data.frame(names= names(i), i, groups)
+    CAZY_df_list[[j]]<- CAZY_df
   }
 }
 
@@ -416,14 +167,13 @@ names(CAZY_df_list) = names(data_list_named)
 #note- this works but takes a hot minute 
 list_of_cdat<- vector(mode = "list", length = length(data_list_named))
 for (j in 1:length(list_of_cdat)){
-for (i in CAZY_df_list[j]){
-ea_cdat<- comparative.data(data=i, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
-list_of_cdat[[j]]<- ea_cdat
-}}
+  for (i in CAZY_df_list[j]){
+    ea_cdat<- comparative.data(data=i, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
+    list_of_cdat[[j]]<- ea_cdat
+  }}
 
 #name ea. df in the list of dfs
 names(list_of_cdat) = names(data_list_named)
-
 
 
 #step 3: run pgls
@@ -452,6 +202,108 @@ for (j in 1:length(list_of_p_vals)){
 names(list_of_p_vals) = names(data_list_named)
 
 #how many are significant?
+length(list_of_p_vals[list_of_p_vals <.01])
+#there are 28 that are significantly different
+#there are 12 that are significantly different at p <0.01
+
+#the different ones:
+different_between_SandO<- list_of_p_vals[list_of_p_vals <.01]
+
+
+
+##remove suspects and re-run to look for changes in significant groups
+suspects<- c("Gyrli1", "Rhivul1", "Rhivi1", "Rhives1", "Rhisa1")
+CAZy_traits_ordered_no_suspects<- CAZy_traits_ordered[!CAZy_traits_ordered$JGI_project_code %in% suspects, ]
+#remove suspects from groups
+groups_no_suspects<- groups[!names(groups) %in% suspects]
+#remove suspects from tree
+tre.w.names_no_suspects<- drop.tip(tre.w.names, suspects, trim.internal = TRUE, subtree = FALSE,
+                              root.edge = 0, collapse.singles = TRUE,
+                              interactive = FALSE)
+#make cophenetic matrix
+tre.w.names_no_suspects_coph<- cophenetic(tre.w.names_no_suspects)
+#make tree ultametric
+tre.w.names_ultra_ns = force.ultrametric(tre.w.names_no_suspects)
+
+#check that the order of the dataframe matches the tree now that you've removed some tips
+CAZy_traits_ordered_no_suspects_again<-CAZy_traits_ordered_no_suspects[match(row.names(tre.w.names_no_suspects_coph), CAZy_traits_ordered_no_suspects$JGI_project_code),]
+
+#format the dataframe
+CAZy_traits_ordered_no_suspects2<-as.matrix(CAZy_traits_ordered_no_suspects_again[,4:ncol(CAZy_traits_ordered_no_suspects_again)])
+row.names(CAZy_traits_ordered_no_suspects2)<- CAZy_traits_ordered_no_suspects_again$JGI_project_code
+CAZy_traits_ordered_no_suspects3<- data.frame(CAZy_traits_ordered_no_suspects2)
+
+#transform
+CAZy_traits_ordered_no_suspects3_t<- t(CAZy_traits_ordered_no_suspects3)
+#split the df by row into a list of lists
+data_list_ns <- setNames(split(CAZy_traits_ordered_no_suspects3_t,
+                            seq(nrow(CAZy_traits_ordered_no_suspects3_t))),
+                      rownames(CAZy_traits_ordered_no_suspects3_t))
+#name each element in the list
+data_list_named_ns<- lapply(data_list_ns, function(x) setNames(x, CAZy_traits_ordered_no_suspects_again$JGI_project_code))
+
+
+#step 2: make each column into a dataframe
+#form this: AA_df<- data.frame(names= names(AA), AA, groups)
+CAZY_df_ns<- data.frame()
+CAZY_df_list_ns<- vector(mode = "list", length = length(data_list_named_ns))
+for (j in 1:length(data_list_named_ns)){
+  for (i in data_list_named_ns[j]){
+    CAZY_df_ns <-  data.frame(names= names(i), i, groups_no_suspects)
+    CAZY_df_list_ns[[j]]<- CAZY_df_ns
+  }
+}
+
+#name ea. df in the list of dfs
+names(CAZY_df_list_ns) = names(data_list_named_ns)
+
+
+##step 2: link each dataframe to the phylogeny creating a "comparative dataset"
+# from this: cdat_AA<- comparative.data(data=AA_df, phy=tre.w.names_ultra, names.col="names", vcv=TRUE, vcv.dim=3)
+
+#note- this works but takes a hot minute 
+list_of_cdat_ns<- vector(mode = "list", length = length(data_list_named_ns))
+for (j in 1:length(list_of_cdat_ns)){
+  for (i in CAZY_df_list_ns[j]){
+    ea_cdat_ns<- comparative.data(data=i, phy=tre.w.names_ultra_ns, names.col="names", vcv=TRUE, vcv.dim=3)
+    list_of_cdat_ns[[j]]<- ea_cdat_ns
+  }}
+
+#name ea. df in the list of dfs
+names(list_of_cdat_ns) = names(data_list_named_ns)
+
+
+
+#step 3: run pgls
+#pgls from caper
+#from this: AA_mod<- pgls(formula = AA ~ groups, data = cdat_AA, lambda='ML')
+#summary(AA_mod)
+list_of_mod_ns<- vector(mode = "list", length = length(data_list_named_ns))
+for (j in 1:length(list_of_mod_ns)){
+  for (i in list_of_cdat_ns[j]){
+    mod_ea_ns<- pgls(formula = i ~ groups_no_suspects, data = i, lambda='ML')
+    list_of_mod_ns[[j]]<- mod_ea_ns
+  }}
+#note - this throws a weird error: Error in pgls(formula = i ~ groups_no_suspects, data = i, lambda = "ML") : 
+#Problem with optim:52ERROR: ABNORMAL_TERMINATION_IN_LNSRCH
+#go back and do this individually if needed - it's probably due to 0 variance in some comparisons 
+#if you're only looking at AA's this isn't hard to do and will reduce the chance to running into this model error
+
+#name ea. df in the list of dfs
+names(list_of_mod_ns) = names(data_list_named_ns)
+
+
+#extract p-values 
+list_of_p_vals<- vector(mode = "list", length = length(data_list_named))
+for (j in 1:length(list_of_p_vals)){
+  for (i in list_of_mod[j]){
+    pval_ea<- i$coefficients[2,4]
+    list_of_p_vals[[j]]<- pval_ea
+  }}
+#name ea. df in the list of dfs
+names(list_of_p_vals) = names(data_list_named)
+
+#how many are significant?
 length(list_of_p_vals[list_of_p_vals <.05])
 #there are 28 that are significantly different
 
@@ -459,6 +311,114 @@ length(list_of_p_vals[list_of_p_vals <.05])
 different_between_SandO<- list_of_p_vals[list_of_p_vals <.05]
 
 ##make a heatmap for the CAZy's that are  significantly different 
-sig_diff_names<- names(different_between_SandO)
+sig_diff_names<- names(different_between_SandO) 
+#+ remove the overall GH category 
+sig_diff_names2<-sig_diff_names[unlist(sig_diff_names) != "GH"]
+#subset the input to just these results:
+CAZy_traits3_significant<- CAZy_traits3[,colnames(CAZy_traits3) %in% sig_diff_names2]
 
+#slide that over to GHs
+p_sig <-  gheatmap(p8, CAZy_traits3_significant, 
+                 offset=0.3, 
+                 width=2, 
+                 low="white", 
+                 high="black", 
+                 colnames_position = "top", 
+                 font.size=1.5,
+                 colnames_angle=45,
+                 colnames_offset_y = 1)
+
+# plot
+plot(p_sig)
+
+#in color useing pheatmap
+#order the dataframe 
+names_in_order<- c("Suibov1",
+                   "Suibr2",
+                   "Suicot1",
+                   "Suidec1",
+                   "Suifus1",
+                   "Suihi1",
+                   "Suilu4",
+                   "Suiocc1",
+                   "Suisu1",
+                   "Suitom1",
+                   "Suivar1",
+                   "Suiame1",
+                   "Suidis1",
+                   "Suipic1",
+                   "Suipla1",
+                   "Suiplo1",
+                   "Suisubl1",
+                   "Suiamp1",
+                   "Suicli1",
+                   "Suipal1",
+                   "Suisub1",
+                   "Suigr1",
+                   "Suilak1",
+                   "Rhisa1",
+                   "Rhitru1",
+                   "Rhives1",
+                   "Rhivi1",
+                   "Rhivul1",
+                   "Amamu1",
+                   "Cananz1",
+                   "Gaumor1",
+                   "Gyrli1",
+                   "Hebcy2",
+                   "Hydru2",
+                   "Hyssto1",
+                   "Lacam2",
+                   "Lacbi2",
+                   "Paxin1",
+                   "Pilcr1",
+                   "Pismi1",
+                   "Pisti1",
+                   "Rusbre1",
+                   "Ruscom1",
+                   "Sclci1",
+                   "Theter1",
+                   "Thega1")
+
+
+CAZy_traits3_significant_ordered<- CAZy_traits3_significant[match(names_in_order, rownames(CAZy_traits3_significant)),]   
+
+pheatmap(CAZy_traits3_significant_ordered, 
+         angle_col = "315", 
+         fontsize = 3,
+         cluster_rows= FALSE,
+         cluster_cols = TRUE,
+         scale = "column",
+         color = inferno(100),
+         #color = colfunc(100),
+         #breaks = 1)
+         border_color = NA,
+         cellheight=5,cellwidth=5,
+         display_numbers = CAZy_traits3_significant_ordered)
+
+CAZy_traits3_AA_ordered<- CAZy_traits3[match(names_in_order, rownames(CAZy_traits3)),]   
+
+#do the same but with all AA 
+pheatmap(CAZy_traits3_AA_ordered[2:21], 
+         angle_col = "315", 
+         fontsize = 3,
+         cluster_rows= FALSE,
+         cluster_cols = TRUE,
+         scale = "column",
+         color = inferno(100),
+         #color = colfunc(100),
+         #breaks = 1)
+         border_color = NA,
+         cellheight=5,cellwidth=5,
+         display_numbers = CAZy_traits3_AA_ordered[2:21])
+
+#get average 
+AA3_dist_df<- data.frame(cbind(CAZy_traits$JGI_project_code, CAZy_traits$treatment, as.numeric(CAZy_traits$AA3_dist)))
+sul<- AA3_dist_df[AA3_dist_df$X2 == "S",]
+oth<- AA3_dist_df[AA3_dist_df$X2 == "O",]
+mean(as.numeric(sul$X3))
+mean(as.numeric(oth$X3))
+
+#get pval for AA3_dist
+list_of_mod$AA3_dist
 
